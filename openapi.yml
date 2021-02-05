@@ -1,0 +1,360 @@
+openapi: 3.0.0
+info:
+  description: a blog api
+  version: "1.0.0"
+  title: blog
+  contact:
+    email: young@young-zy.com
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/young-zy/blog/1.0.0
+tags:
+  - name: post
+    description: post operations
+  - name: user
+    description: user related operation
+  - name: question
+    description: question box related opertions
+  - name: reply
+    description: reply related operation
+paths:
+  /post:
+    get:
+      tags:
+        - post
+      summary: 'get the post list'
+      parameters:
+        - name: page
+          in: query
+          description: page of query result
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: amount
+          in: query
+          description: amount of results per query
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: thread list by page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: 'post a new post'
+      tags:
+        - post
+      parameters:
+        - name: X-Auth-Token
+          in: header
+          required: true
+          description: token of the user
+          schema:
+            type: string
+      requestBody:
+        description: request body of the post
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+      responses:
+        204:
+          description: post published successfully
+        403:
+          description: user does not have permission to post
+        401:
+          description: token was not found in the header
+  /post/:postId:
+    get:
+      summary: ''
+      tags:
+        - post
+      parameters:
+        - name: postId
+          in: path
+          description: id of the post
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        200:
+          description: retrieved post successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+  /post/:postId/reply:
+    get:
+      summary: get replies of the post
+      tags:
+        - reply
+      parameters:
+        - name: postId
+          in: path
+          description: id of the post
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: page
+          in: query
+          description: page of the reply
+          schema:
+            type: integer
+            format: int32
+        - name: amount
+          in: query
+          description: amount of the results per page
+          schema:
+            type: integer
+            format: int32
+      responses:
+        200:
+          description: retrieved post successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reply'
+    post:
+      summary: 'make a new reply'
+      tags:
+        - reply
+      parameters:
+        - name: postId
+          in: path
+          description: 'id of the post'
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: token
+          in: header
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                replyContent:
+                  type: string
+                notifyEmails:
+                  type: array
+                  items:
+                    type: string
+                    format: email
+      responses:
+        200:
+          description: posted the reply successfully
+        404:
+          description: postId not found
+        403:
+          description: email not in replies or not logged in(token not provided)
+  /user/login:
+    post:
+      tags:
+        - user
+      summary: 'login'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: logged in successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      token:
+                        type: string
+                  - $ref: '#/components/schemas/User'
+  /user/logout:
+    post:
+      tags:
+        - user
+      summary: 'logout the user'
+      parameters:
+        - name: X-Auth-Token
+          in: header
+          description: token of the user
+          schema:
+            type: string
+      responses:
+        200:
+          description: logged out successfully
+        404:
+          description: token not found
+  /user:
+    get:
+      summary: 'Sample endpoint: Returns details about a particular user'
+      operationId: listUser
+      tags:
+        - user
+      parameters:
+        - name: id
+          in: query
+          description: ID of the user
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: 'Sample response: Details about a user by ID'
+          headers:
+            x-next:
+              description: A link to the next page of responses
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /question:
+    post:
+      tags:
+        - question
+      summary: 'add a new question'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  description: won't be shown, used only for notification when answered
+                  type: string
+                  format: email
+                questionContent:
+                  type: string
+      responses:
+        200:
+          description: question added successfully
+    get:
+      summary: get the question list
+      tags:
+        - question
+      parameters:
+        - name: page
+          in: query
+          description: page of the reply, default value is 1
+          schema:
+            type: integer
+            format: int32
+        - name: amount
+          in: query
+          description: amount of the results per page, default value is 10
+          schema:
+            type: integer
+            format: int32
+      responses:
+        200:
+          description: retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Question'
+components:
+  schemas:
+    Post:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        content:
+          type: string
+        lastUpdated:
+          type: string
+          format: date-time
+    Reply:
+      type: object
+      properties:
+        id:
+          type: integer
+        content:
+          type: string
+        email:
+          type: string
+          format: email
+        lastUpdated:
+          type: string
+          format: date-time
+    User:
+      type: object
+      required:
+        - id
+        - name
+        - email
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        tag:
+          type: string
+    Question:
+      type: object
+      required:
+        - questionContent
+      properties:
+        questionContent:
+          type: string
+        replyContent:
+          type: string
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
