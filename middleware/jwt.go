@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"blog/conf"
 	"errors"
 	"log"
 	"time"
@@ -10,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 
+	"blog/conf"
 	"blog/models"
 	"blog/services"
 )
@@ -27,7 +27,7 @@ func init() {
 		Key:             []byte(config.Server.JwtKey),
 		Timeout:         time.Hour * 24,
 		MaxRefresh:      time.Hour,
-		IdentityKey:     "Id",
+		IdentityKey:     "User",
 		PayloadFunc:     payload,
 		IdentityHandler: identityHandler,
 		Authenticator:   authenticator,
@@ -70,7 +70,8 @@ func payload(data interface{}) jwt.MapClaims {
 func identityHandler(c *gin.Context) interface{} {
 	claims := jwt.ExtractClaims(c)
 	return &models.User{
-		Id: claims["Id"].(int),
+		Id:       int(claims["Id"].(float64)),
+		Username: claims["Username"].(string),
 	}
 }
 
@@ -81,22 +82,23 @@ func authenticator(c *gin.Context) (interface{}, error) {
 		return nil, jwt.ErrMissingLoginValues
 	}
 	// retrieve user from database and check password
-	user, err := services.GetUser(loginRequest.Username)
-	if err != nil {
+	if user, ok := services.GetUser(c, loginRequest.Username); ok {
+		if err := bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(loginRequest.Password)); err != nil {
+			return nil, jwt.ErrFailedAuthentication
+		}
+		return &models.User{
+			Id:       user.Id,
+			Username: user.Username,
+			Email:    user.Email,
+		}, nil
+	} else {
 		return nil, errors.New("username does not exist")
 	}
-	if err := bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(loginRequest.Password)); err != nil {
-		return nil, jwt.ErrFailedAuthentication
-	}
-	return &models.User{
-		Id:       user.Id,
-		Username: user.Username,
-		Email:    user.Email,
-	}, nil
 }
 
 func authorizer(data interface{}, c *gin.Context) bool {
 	if v, ok := data.(*models.User); ok && v.Username != "" {
+		// reserved for future role or auth settings in context
 		return true
 	}
 	return false

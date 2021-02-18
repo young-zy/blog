@@ -25,8 +25,8 @@ func init() {
 	myLogger := NewMyLogger(log.New(os.Stdout, "\r\n", log.LstdFlags),
 		logger.Config{
 			SlowThreshold: time.Second, // 慢 SQL 阈值
-			LogLevel:      logger.Info, // Log level
-			Colorful:      true,        // 禁用彩色打印
+			LogLevel:      logger.Warn, // Log level
+			Colorful:      true,        // 彩色打印
 		},
 	)
 

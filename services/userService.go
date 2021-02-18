@@ -1,25 +1,25 @@
 package services
 
 import (
-	"blog/common"
 	"errors"
-	"github.com/go-sql-driver/mysql"
-	"gorm.io/gorm"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
+	"github.com/go-sql-driver/mysql"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 
+	"blog/common"
 	"blog/databases"
 	"blog/models"
 )
 
-func Register(username, password, email string) common.HttpError {
+func Register(c *gin.Context, username, password, email string) bool {
 	// TODO validate field
-
 	// generate hashed password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return common.NewBadRequestError("error creating hashed password")
+		_ = c.Error(common.NewBadRequestError("error creating hashed password")).SetType(gin.ErrorTypePublic)
 	}
 	user := &models.User{
 		Username:       username,
@@ -33,51 +33,50 @@ func Register(username, password, email string) common.HttpError {
 		if ok {
 			// duplicate entry error
 			if mySQLError.Number == 1062 {
-				return common.NewSelfDefinedError(http.StatusConflict, "username or email already exists")
+				_ = c.Error(common.NewSelfDefinedError(http.StatusConflict, "username or email already exists")).
+					SetType(gin.ErrorTypePublic)
 			}
+		} else {
+			common.NewInternalError(c, err)
 		}
-		return common.NewInternalServerError(err.Error())
+		return false
 	}
-	// return no content if success
-	return nil
+	return true
 }
 
 // acquire user by username
-func GetUser(username string) (user *models.User, httpError common.HttpError) {
+func GetUser(c *gin.Context, username string) (user *models.User, ok bool) {
+	ok = true
 	user, err := databases.GetUser(username)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			httpError = common.NewNotFoundError("user not found")
+			_ = c.Error(common.NewNotFoundError("user not found"))
 		} else {
-			httpError = common.NewInternalServerError(err.Error())
+			common.NewInternalError(c, err)
 		}
-		return
+		ok = false
 	}
 	return
 }
 
-func UpdateUser(user *models.User) (httpError common.HttpError) {
+func UpdateUser(c *gin.Context, user *models.User) {
 	err := databases.UpdateUser(user)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			httpError = common.NewNotFoundError("user to be updated not found")
+			_ = c.Error(common.NewNotFoundError("user to be updated not found")).SetType(gin.ErrorTypePublic)
 		} else {
-			httpError = common.NewInternalServerError(err.Error())
+			common.NewInternalError(c, err)
 		}
-		return
 	}
-	return nil
 }
 
-func DeleteUser(userId int) (httpError common.HttpError) {
+func DeleteUser(c *gin.Context, userId int) {
 	err := databases.DeleteUser(userId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			httpError = common.NewNotFoundError("user to be deleted not found")
+			_ = c.Error(common.NewNotFoundError("user to be deleted not found")).SetType(gin.ErrorTypePublic)
 		} else {
-			httpError = common.NewInternalServerError(err.Error())
+			common.NewInternalError(c, err)
 		}
-		return
 	}
-	return
 }

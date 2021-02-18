@@ -9,31 +9,26 @@ import (
 	"blog/services"
 )
 
-func init() {
+func initUserGroup() {
 	userGroup := Router.Group("/user")
 	{
 		userGroup.POST("", register)
+		userGroup.GET("/:username", getUser)
 	}
 }
 
 func getUser(c *gin.Context) {
-
+	username := c.Param("userId")
+	services.GetUser(c, username)
 }
 
 func register(c *gin.Context) {
 	body := &models.UserRegister{}
 	err := c.BindJSON(body)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"code":    http.StatusBadRequest,
-			"message": "failed to parse body",
-		})
+		return
 	}
-	httpError := services.Register(body.Username, body.Password, body.Email)
-	if httpError != nil {
-		// handle error
-		handleError(c, httpError)
-	} else {
+	if services.Register(c, body.Username, body.Password, body.Email) {
 		c.JSON(http.StatusNoContent, gin.H{
 			"code":    http.StatusNoContent,
 			"message": "user registered successfully",

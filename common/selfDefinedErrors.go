@@ -3,6 +3,8 @@ package common
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 type HttpError interface {
@@ -45,4 +47,9 @@ func NewInternalServerError(message string) *SelfDefinedError {
 
 func NewBadRequestError(message string) *SelfDefinedError {
 	return NewSelfDefinedError(http.StatusBadRequest, message)
+}
+
+func NewInternalError(ctx *gin.Context, err error) {
+	_ = ctx.Error(NewInternalServerError("something bad happens")).SetType(gin.ErrorTypePublic)
+	_ = ctx.Error(err).SetType(gin.ErrorTypePrivate)
 }

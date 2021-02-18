@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
 	"blog/common"
@@ -13,10 +13,17 @@ import (
 	"blog/models"
 )
 
-func GetQuestions(ctx context.Context, page int, size int) (questionListResponse *models.QuestionListResponse, httpError common.HttpError) {
+func GetQuestions(ctx *gin.Context, page int, size int) (questionListResponse *models.QuestionListResponse, ok bool) {
+	ok = true
 	questionList, totalCount, err := databases.GetQuestions(ctx, page, size)
 	if err != nil {
-		httpError = common.NewInternalServerError("error retrieving questions")
+		// check if err is mysql error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			_ = ctx.Error(common.NewNotFoundError("no question available")).SetType(gin.ErrorTypePublic)
+		} else {
+			common.NewInternalError(ctx, err)
+		}
+		ok = false
 		return
 	}
 	questionListResponse = &models.QuestionListResponse{
@@ -26,38 +33,40 @@ func GetQuestions(ctx context.Context, page int, size int) (questionListResponse
 	return
 }
 
-// add a question using databases.AddQuestion
-func AddQuestion(ctx context.Context, question *models.Question) (httpError common.HttpError) {
+// add a question using databases.AddQuestion, returns if operation is successful
+func AddQuestion(ctx *gin.Context, question *models.Question) bool {
 	err := databases.AddQuestion(ctx, question)
 	if err != nil {
-		httpError = common.NewInternalServerError(err.Error())
+		common.NewInternalError(ctx, err)
+		return false
 	}
-	return
+	return true
 }
 
-func AnswerQuestion(ctx context.Context, questionId uint, content string) (httpError common.HttpError) {
+// returns if operation is successful
+func AnswerQuestion(ctx *gin.Context, questionId uint, content string) bool {
 	tx := databases.GetTransaction()
 	question, err := databases.GetQuestionWithTransaction(ctx, tx, questionId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			httpError = common.NewNotFoundError("question not found")
-			return
+			_ = ctx.Error(common.NewNotFoundError("question not found")).SetType(gin.ErrorTypePublic)
+		} else {
+			common.NewInternalError(ctx, err)
 		}
-		httpError = common.NewInternalServerError(err.Error())
 		tx.Rollback()
-		return
+		return false
 	}
 	if question.AnswerContent != "" {
 		tx.Rollback()
-		return common.NewBadRequestError("question has already been answered")
+		_ = ctx.Error(common.NewBadRequestError("question has already been answered")).SetType(gin.ErrorTypePublic)
+		return false
 	}
 	question.AnswerContent = content
 	err = databases.UpdateQuestionWithTransaction(ctx, tx, question)
 	if err != nil {
-		log.Println(err)
-		httpError = common.NewInternalServerError(err.Error())
 		tx.Rollback()
-		return
+		common.NewInternalError(ctx, err)
+		return false
 	}
 	tx.Commit()
 	// notify the email
@@ -69,42 +78,41 @@ func AnswerQuestion(ctx context.Context, questionId uint, content string) (httpE
 		title := "您在提问箱的提问有新回答"
 		go common.SendMail(c, question.Email, title, message)
 	}
-	return
+	return true
 }
 
-func UpdateAnswer(ctx context.Context, questionId uint, content string) (httpError common.HttpError) {
+func UpdateAnswer(ctx *gin.Context, questionId uint, content string) bool {
 	tx := databases.GetTransaction()
 	question, err := databases.GetQuestionWithTransaction(ctx, tx, questionId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			httpError = common.NewNotFoundError("question not found")
-			return
+			_ = ctx.Error(common.NewNotFoundError("question not found")).SetType(gin.ErrorTypePublic)
+		} else {
+			common.NewInternalError(ctx, err)
 		}
-		httpError = common.NewInternalServerError(err.Error())
 		tx.Rollback()
-		return
+		return false
 	}
 	question.AnswerContent = content
 	err = databases.UpdateQuestionWithTransaction(ctx, tx, question)
 	if err != nil {
-		log.Println(err)
-		httpError = common.NewInternalServerError(err.Error())
+		common.NewInternalError(ctx, err)
 		tx.Rollback()
-		return
+		return false
 	}
 	tx.Commit()
-	return
+	return true
 }
 
-func DeleteQuestion(ctx context.Context, questionId uint) (httpError common.HttpError) {
+func DeleteQuestion(ctx *gin.Context, questionId uint) bool {
 	err := databases.DeleteQuestion(ctx, questionId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			httpError = common.NewNotFoundError("question not found")
-			return
+			_ = ctx.Error(common.NewNotFoundError("question not found")).SetType(gin.ErrorTypePublic)
+		} else {
+			common.NewInternalError(ctx, err)
 		}
-		httpError = common.NewInternalServerError(err.Error())
-		return
+		return false
 	}
-	return
+	return true
 }

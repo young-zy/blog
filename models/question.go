@@ -17,11 +17,15 @@ type QuestionListResponse struct {
 	TotalCount int64               `json:"totalCount"`
 }
 
-type QuestionResponse struct {
+type QuestionInListResponse struct {
 	Id              uint       `json:"id"`
 	QuestionContent string     `json:"questionContent"`
 	CreateTime      *time.Time `json:"createTime"`
-	AnswerContent   string     `json:"answerContent"`
 	AnswerTime      *time.Time `json:"answerTime"`
 	IsAnswered      bool       `json:"isAnswered"`
+}
+
+type QuestionResponse struct {
+	*QuestionInListResponse
+	QuestionContent string `json:"questionContent"`
 }

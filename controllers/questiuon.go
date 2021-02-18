@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -12,37 +13,33 @@ import (
 	"blog/services"
 )
 
-func init() {
-	Router.Use(Cors())
+func initQuestionGroup() {
 	questionGroup := Router.Group("/question")
 	{
 		questionGroup.GET("", getQuestions)
 		questionGroup.POST("", newQuestion)
 		questionGroup.POST("/:questionId/answer", middleware.AuthMiddleware.MiddlewareFunc(), newAnswer)
+		questionGroup.DELETE("/:questionId", middleware.AuthMiddleware.MiddlewareFunc(), deleteQuestion)
+		questionGroup.PATCH("/:questionId", middleware.AuthMiddleware.MiddlewareFunc(), updateAnswer)
 	}
 }
 
 func getQuestions(c *gin.Context) {
 	pager := common.NewPager()
-	err := c.BindQuery(pager)
-	if err != nil {
-		handleError(c, common.NewBadRequestError("error binding pager"))
+	if c.BindQuery(pager) != nil {
+		return
 	}
-	questionList, httpError := services.GetQuestions(c, pager.Page, pager.Size)
-	if err != nil {
-		handleError(c, httpError)
+	if questionList, ok := services.GetQuestions(c, pager.Page, pager.Size); ok {
+		c.JSON(http.StatusOK, questionList)
 	}
-	c.JSON(http.StatusOK, questionList)
 }
 
 func newQuestion(c *gin.Context) {
 	question := &models.Question{}
-	if err := c.ShouldBindJSON(question); err != nil {
-		handleError(c, common.NewBadRequestError("error binding request body"))
+	if c.ShouldBindJSON(question) != nil {
+		return
 	}
-	if httpError := services.AddQuestion(c, question); httpError != nil {
-		handleError(c, httpError)
-	}
+	services.AddQuestion(c, question)
 }
 
 type answerRequest struct {
@@ -51,23 +48,42 @@ type answerRequest struct {
 
 func newAnswer(c *gin.Context) {
 	answer := &answerRequest{}
-	if err := c.Bind(answer); err != nil {
-		handleError(c, common.NewBadRequestError("error parsing answerContent"))
+	if c.Bind(answer) != nil {
+		return
 	}
 	questionId, err := strconv.Atoi(c.Param("questionId"))
 	if err != nil {
-		handleError(c, common.NewBadRequestError("error parsing questionId"))
+		_ = c.Error(errors.New("error parsing questionId")).SetType(gin.ErrorTypeBind)
+		return
 	}
-	httpError := services.AnswerQuestion(c, uint(questionId), answer.answerContent)
-	if httpError != nil {
-		handleError(c, httpError)
+	if services.AnswerQuestion(c, uint(questionId), answer.answerContent) {
+		c.JSON(http.StatusNoContent, nil)
 	}
 }
 
 func deleteQuestion(c *gin.Context) {
-
+	questionId, err := strconv.Atoi(c.Param("questionId"))
+	if err != nil {
+		_ = c.Error(errors.New("error parsing questionId")).SetType(gin.ErrorTypeBind)
+		return
+	}
+	if services.DeleteQuestion(c, uint(questionId)) {
+		c.JSON(http.StatusNoContent, nil)
+	}
 }
 
-func editAnswer() {
-
+func updateAnswer(c *gin.Context) {
+	questionId, err := strconv.Atoi(c.Param("questionId"))
+	if err != nil {
+		_ = c.Error(errors.New("error parsing questionId")).SetType(gin.ErrorTypeBind)
+		return
+	}
+	question := &models.Question{}
+	if c.Bind(question) != nil {
+		return
+	}
+	services.UpdateAnswer(c, uint(questionId), question.AnswerContent)
+	if services.DeleteQuestion(c, uint(questionId)) {
+		c.JSON(http.StatusNoContent, nil)
+	}
 }
