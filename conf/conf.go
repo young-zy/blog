@@ -2,7 +2,7 @@ package conf
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 )
@@ -47,7 +47,7 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	confBytes, err := ioutil.ReadAll(file)
+	confBytes, err := io.ReadAll(file)
 	if err != nil {
 		log.Fatal(err)
 	}
