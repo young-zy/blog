@@ -2,6 +2,8 @@ package databases
 
 import (
 	"context"
+	"time"
+
 	"gorm.io/gorm"
 
 	"blog/models"
@@ -44,33 +46,41 @@ func GetQuestionsWithTransaction(ctx context.Context, tx *gorm.DB, page int, siz
 }
 
 // get a single question bu questionId
-func GetQuestion(ctx context.Context, questionId uint) (question *models.QuestionResponse, err error) {
+func GetQuestion(ctx context.Context, questionId *uint) (question *models.QuestionResponse, err error) {
 	question = &models.QuestionResponse{}
 	err = db.WithContext(ctx).Model(&models.Question{}).Where(&models.Question{Id: questionId}).First(question).Error
 	return
 }
 
-func GetQuestionWithTransaction(ctx context.Context, tx *gorm.DB, questionId uint) (question *models.Question, err error) {
+func GetQuestionWithTransaction(ctx context.Context, tx *gorm.DB, questionId *uint) (question *models.Question, err error) {
 	question = &models.Question{}
 	err = tx.WithContext(ctx).Where(&models.Question{Id: questionId}).First(question).Error
 	return
 }
 
 // add a question to database
-func AddQuestion(ctx context.Context, question *models.Question) error {
-	return db.WithContext(ctx).Create(question).Error
+func AddQuestion(ctx context.Context, question *models.NewQuestionRequest) error {
+	createTime := time.Now()
+	return db.WithContext(ctx).Create(&models.Question{
+		QuestionContent: question.QuestionContent,
+		Email:           question.Email,
+		IsAnswered:      false,
+		CreateTime:      &createTime,
+	}).Error
 }
 
-// update a question object
+// update a question object, must check existence in a transaction before calling this method
 func UpdateQuestion(ctx context.Context, question *models.Question) error {
 	return db.WithContext(ctx).Model(&models.Question{}).Updates(question).Error
 }
 
 // update a question object
 func UpdateQuestionWithTransaction(ctx context.Context, tx *gorm.DB, question *models.Question) error {
+	newAnswerTime := time.Now()
+	question.AnswerTime = &newAnswerTime
 	return tx.Session(&gorm.Session{AllowGlobalUpdate: true}).WithContext(ctx).Model(&models.Question{}).Updates(question).Error
 }
 
-func DeleteQuestion(ctx context.Context, questionId uint) error {
+func DeleteQuestion(ctx context.Context, questionId *uint) error {
 	return db.WithContext(ctx).Delete(&models.Question{Id: questionId}).Error
 }

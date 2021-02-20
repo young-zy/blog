@@ -30,7 +30,7 @@ func getQuestion(c *gin.Context) {
 	if err != nil {
 		_ = c.Error(errors.New("error parsing questionId")).SetType(gin.ErrorTypeBind)
 	}
-	if question, ok := services.GetQuestion(c, uint(questionId)); ok {
+	if question, ok := services.GetQuestion(c, common.IntToUintPointer(questionId)); ok {
 		c.JSON(http.StatusOK, question)
 	}
 }
@@ -48,8 +48,8 @@ func getQuestions(c *gin.Context) {
 }
 
 func newQuestion(c *gin.Context) {
-	question := &models.Question{}
-	if c.ShouldBindJSON(question) != nil {
+	question := &models.NewQuestionRequest{}
+	if c.BindJSON(question) != nil {
 		return
 	}
 	services.AddQuestion(c, question)
@@ -69,7 +69,7 @@ func newAnswer(c *gin.Context) {
 		_ = c.Error(errors.New("error parsing questionId")).SetType(gin.ErrorTypeBind)
 		return
 	}
-	if services.AnswerQuestion(c, uint(questionId), answer.answerContent) {
+	if services.AnswerQuestion(c, common.IntToUintPointer(questionId), &answer.answerContent) {
 		c.JSON(http.StatusNoContent, nil)
 	}
 }
@@ -80,7 +80,7 @@ func deleteQuestion(c *gin.Context) {
 		_ = c.Error(errors.New("error parsing questionId")).SetType(gin.ErrorTypeBind)
 		return
 	}
-	if services.DeleteQuestion(c, uint(questionId)) {
+	if services.DeleteQuestion(c, common.IntToUintPointer(questionId)) {
 		c.JSON(http.StatusNoContent, nil)
 	}
 }
@@ -95,8 +95,8 @@ func updateAnswer(c *gin.Context) {
 	if c.Bind(question) != nil {
 		return
 	}
-	services.UpdateAnswer(c, uint(questionId), question.AnswerContent)
-	if services.DeleteQuestion(c, uint(questionId)) {
+	services.UpdateAnswer(c, common.IntToUintPointer(questionId), question.AnswerContent)
+	if services.DeleteQuestion(c, common.IntToUintPointer(questionId)) {
 		c.JSON(http.StatusNoContent, nil)
 	}
 }

@@ -3,13 +3,18 @@ package models
 import "time"
 
 type Question struct {
-	Id              uint       `gorm:"type:INT;NOT NULL" json:"id"`
-	QuestionContent string     `gorm:"type:MEDIUMTEXT;NOT NULL" json:"question_content"`
-	CreateTime      *time.Time `gorm:"type:DATETIME;" json:"create_time"`
-	Email           string     `gorm:"type:VARCHAR(100);" json:"email"`
-	AnswerContent   string     `gorm:"type:MEDIUMTEXT;" json:"answer_content"`
-	AnswerTime      *time.Time `gorm:"type:DATETIME;" json:"answer_time"`
-	IsAnswered      bool       `gorm:"type:TINYINT" json:"is_answered"`
+	Id              *uint      `gorm:"type:INT;NOT NULL" json:"id"`
+	QuestionContent string     `gorm:"type:MEDIUMTEXT;NOT NULL" json:"questionContent"`
+	CreateTime      *time.Time `gorm:"type:DATETIME;" json:"createTime"`
+	Email           *string    `gorm:"type:VARCHAR(100);" json:"email"`
+	AnswerContent   *string    `gorm:"type:MEDIUMTEXT;" json:"answerContent"`
+	AnswerTime      *time.Time `gorm:"type:DATETIME;" json:"answerTime"`
+	IsAnswered      bool       `gorm:"type:TINYINT" json:"isAnswered"`
+}
+
+type NewQuestionRequest struct {
+	QuestionContent string  `json:"questionContent" binding:"required"`
+	Email           *string `json:"email" binding:"email"`
 }
 
 type QuestionListResponse struct {

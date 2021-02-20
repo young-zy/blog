@@ -13,7 +13,7 @@ import (
 	"blog/models"
 )
 
-func GetQuestion(ctx *gin.Context, questionId uint) (question *models.QuestionResponse, ok bool) {
+func GetQuestion(ctx *gin.Context, questionId *uint) (question *models.QuestionResponse, ok bool) {
 	ok = true
 	question, err := databases.GetQuestion(ctx, questionId)
 	if err != nil {
@@ -48,7 +48,7 @@ func GetQuestions(ctx *gin.Context, page int, size int, filter string) (question
 }
 
 // add a question using databases.AddQuestion, returns if operation is successful
-func AddQuestion(ctx *gin.Context, question *models.Question) bool {
+func AddQuestion(ctx *gin.Context, question *models.NewQuestionRequest) bool {
 	err := databases.AddQuestion(ctx, question)
 	if err != nil {
 		common.NewInternalError(ctx, err)
@@ -58,7 +58,7 @@ func AddQuestion(ctx *gin.Context, question *models.Question) bool {
 }
 
 // returns if operation is successful
-func AnswerQuestion(ctx *gin.Context, questionId uint, content string) bool {
+func AnswerQuestion(ctx *gin.Context, questionId *uint, content *string) bool {
 	tx := databases.GetTransaction()
 	question, err := databases.GetQuestionWithTransaction(ctx, tx, questionId)
 	if err != nil {
@@ -70,7 +70,7 @@ func AnswerQuestion(ctx *gin.Context, questionId uint, content string) bool {
 		tx.Rollback()
 		return false
 	}
-	if question.AnswerContent != "" {
+	if question.AnswerContent != nil && *question.AnswerContent != "" {
 		tx.Rollback()
 		_ = ctx.Error(common.NewBadRequestError("question has already been answered")).SetType(gin.ErrorTypePublic)
 		return false
@@ -84,18 +84,18 @@ func AnswerQuestion(ctx *gin.Context, questionId uint, content string) bool {
 	}
 	tx.Commit()
 	// notify the email
-	if question.Email != "" {
+	if question.Email != nil && *question.Email != "" {
 		link := fmt.Sprintf("https://young-zy.com/question/%d", questionId)
 		message := fmt.Sprintf("您的提问已被回复: %s", link)
 		c, cancel := context.WithCancel(ctx)
 		defer cancel()
 		title := "您在提问箱的提问有新回答"
-		go common.SendMail(c, question.Email, title, message)
+		go common.SendMail(c, *question.Email, title, message)
 	}
 	return true
 }
 
-func UpdateAnswer(ctx *gin.Context, questionId uint, content string) bool {
+func UpdateAnswer(ctx *gin.Context, questionId *uint, content *string) bool {
 	tx := databases.GetTransaction()
 	question, err := databases.GetQuestionWithTransaction(ctx, tx, questionId)
 	if err != nil {
@@ -118,7 +118,7 @@ func UpdateAnswer(ctx *gin.Context, questionId uint, content string) bool {
 	return true
 }
 
-func DeleteQuestion(ctx *gin.Context, questionId uint) bool {
+func DeleteQuestion(ctx *gin.Context, questionId *uint) bool {
 	err := databases.DeleteQuestion(ctx, questionId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
