@@ -2,6 +2,7 @@ package conf
 
 import (
 	"encoding/json"
+	"flag"
 	"io"
 	"log"
 	"os"
@@ -39,11 +40,14 @@ type Conf struct {
 }
 
 func init() {
+	var confDir string
+	flag.StringVar(&confDir, "c", "./conf.json", "location of configuration file")
+	flag.Parse()
 	Config = &Conf{
 		Database: DBConfig{},
 		Server:   Server{},
 	}
-	file, err := os.Open("C:\\Users\\youngzy\\go\\blog\\resources\\config.json")
+	file, err := os.Open(confDir)
 	if err != nil {
 		log.Fatal(err)
 	}

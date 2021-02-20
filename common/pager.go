@@ -1,8 +1,8 @@
 package common
 
 type Pager struct {
-	Page int
-	Size int
+	Page int `form:"page"`
+	Size int `form:"size"`
 }
 
 func NewPager() *Pager {

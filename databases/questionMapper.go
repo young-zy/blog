@@ -7,9 +7,17 @@ import (
 	"blog/models"
 )
 
-// get a list of questions
-func GetQuestions(ctx context.Context, page int, size int) (questionList []*models.QuestionResponse, totalCount int64, err error) {
-	questionDb := db.WithContext(ctx).Table("questions").Model(&models.QuestionResponse{})
+// Get a list of questions,
+// filter could be solved or unsolved, any other values(including unprovided).
+func GetQuestions(ctx context.Context, page int, size int, filter string) (questionList []*models.QuestionInListResponse, totalCount int64, err error) {
+	questionDb := db.WithContext(ctx).
+		Table("questions").
+		Model(&models.QuestionResponse{})
+	if filter == "solved" {
+		questionDb = questionDb.Where("is_answered = 1")
+	} else if filter == "unsolved" {
+		questionDb = questionDb.Where("is_answered = 0")
+	}
 	err = questionDb.
 		Count(&totalCount).
 		Offset((page - 1) * size).
@@ -36,9 +44,9 @@ func GetQuestionsWithTransaction(ctx context.Context, tx *gorm.DB, page int, siz
 }
 
 // get a single question bu questionId
-func GetQuestion(ctx context.Context, questionId uint) (question *models.Question, err error) {
-	question = &models.Question{}
-	err = db.WithContext(ctx).Where(&models.Question{Id: questionId}).First(question).Error
+func GetQuestion(ctx context.Context, questionId uint) (question *models.QuestionResponse, err error) {
+	question = &models.QuestionResponse{}
+	err = db.WithContext(ctx).Model(&models.Question{}).Where(&models.Question{Id: questionId}).First(question).Error
 	return
 }
 

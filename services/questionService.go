@@ -13,9 +13,23 @@ import (
 	"blog/models"
 )
 
-func GetQuestions(ctx *gin.Context, page int, size int) (questionListResponse *models.QuestionListResponse, ok bool) {
+func GetQuestion(ctx *gin.Context, questionId uint) (question *models.QuestionResponse, ok bool) {
 	ok = true
-	questionList, totalCount, err := databases.GetQuestions(ctx, page, size)
+	question, err := databases.GetQuestion(ctx, questionId)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			_ = ctx.Error(common.NewNotFoundError("question not found")).SetType(gin.ErrorTypePublic)
+		} else {
+			common.NewInternalError(ctx, err)
+		}
+		ok = false
+	}
+	return
+}
+
+func GetQuestions(ctx *gin.Context, page int, size int, filter string) (questionListResponse *models.QuestionListResponse, ok bool) {
+	ok = true
+	questionList, totalCount, err := databases.GetQuestions(ctx, page, size, filter)
 	if err != nil {
 		// check if err is mysql error
 		if errors.Is(err, gorm.ErrRecordNotFound) {

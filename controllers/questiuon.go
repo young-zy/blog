@@ -17,6 +17,7 @@ func initQuestionGroup() {
 	questionGroup := Router.Group("/question")
 	{
 		questionGroup.GET("", getQuestions)
+		questionGroup.GET("/:questionId", getQuestion)
 		questionGroup.POST("", newQuestion)
 		questionGroup.POST("/:questionId/answer", middleware.AuthMiddleware.MiddlewareFunc(), newAnswer)
 		questionGroup.DELETE("/:questionId", middleware.AuthMiddleware.MiddlewareFunc(), deleteQuestion)
@@ -24,12 +25,24 @@ func initQuestionGroup() {
 	}
 }
 
+func getQuestion(c *gin.Context) {
+	questionId, err := strconv.Atoi(c.Param("questionId"))
+	if err != nil {
+		_ = c.Error(errors.New("error parsing questionId")).SetType(gin.ErrorTypeBind)
+	}
+	if question, ok := services.GetQuestion(c, uint(questionId)); ok {
+		c.JSON(http.StatusOK, question)
+	}
+}
+
+// default page is 1 and default size is 10.
 func getQuestions(c *gin.Context) {
 	pager := common.NewPager()
 	if c.BindQuery(pager) != nil {
 		return
 	}
-	if questionList, ok := services.GetQuestions(c, pager.Page, pager.Size); ok {
+	filter := c.Query("filter")
+	if questionList, ok := services.GetQuestions(c, pager.Page, pager.Size, filter); ok {
 		c.JSON(http.StatusOK, questionList)
 	}
 }

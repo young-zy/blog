@@ -13,8 +13,8 @@ type Question struct {
 }
 
 type QuestionListResponse struct {
-	Questions  []*QuestionResponse `json:"questions"`
-	TotalCount int64               `json:"totalCount"`
+	Questions  []*QuestionInListResponse `json:"questions"`
+	TotalCount int64                     `json:"totalCount"`
 }
 
 type QuestionInListResponse struct {
@@ -27,5 +27,5 @@ type QuestionInListResponse struct {
 
 type QuestionResponse struct {
 	*QuestionInListResponse
-	QuestionContent string `json:"questionContent"`
+	AnswerContent string `json:"answerContent"`
 }
