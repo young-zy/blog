@@ -78,7 +78,12 @@ func UpdateQuestion(ctx context.Context, question *models.Question) error {
 func UpdateQuestionWithTransaction(ctx context.Context, tx *gorm.DB, question *models.Question) error {
 	newAnswerTime := time.Now()
 	question.AnswerTime = &newAnswerTime
-	return tx.Session(&gorm.Session{AllowGlobalUpdate: true}).WithContext(ctx).Model(&models.Question{}).Updates(question).Error
+	return tx.Session(&gorm.Session{AllowGlobalUpdate: true}).
+		WithContext(ctx).
+		Model(&models.Question{}).
+		Where("id = ?", question.Id).
+		Updates(question).
+		Error
 }
 
 func DeleteQuestion(ctx context.Context, questionId *uint) error {

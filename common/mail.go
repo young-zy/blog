@@ -1,10 +1,11 @@
 package common
 
 import (
-	"context"
 	"crypto/tls"
 	"encoding/base64"
+	"errors"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/mail"
 	"net/smtp"
@@ -14,9 +15,11 @@ import (
 )
 
 var (
-	auth   smtp.Auth
-	config conf.MailConfig
-	conn   *tls.Conn
+	auth      smtp.Auth
+	config    conf.MailConfig
+	state     bool
+	tlsConfig *tls.Config
+	addr      string
 )
 
 func encodeRFC2047(String string) string {
@@ -25,8 +28,11 @@ func encodeRFC2047(String string) string {
 	return strings.Trim(addr.String(), " <@>")
 }
 
-func SendMail(ctx context.Context, receiver string, title string, msg string) {
+func SendMail(ctx *gin.Context, receiver string, title string, msg string) {
 
+	if !state {
+		log.Println("connection state is invalid, skipping the mail send operation")
+	}
 	// TODO filter mail list
 
 	header := make(map[string]string)
@@ -42,6 +48,11 @@ func SendMail(ctx context.Context, receiver string, title string, msg string) {
 		message += fmt.Sprintf("%s: %s\r\n", k, v)
 	}
 	message += "\r\n" + base64.StdEncoding.EncodeToString([]byte(msg))
+
+	conn, err := tls.Dial("tcp", addr, tlsConfig)
+	if err != nil {
+		_ = ctx.Error(errors.New("failed to connect to mail server skipping the send")).SetType(gin.ErrorTypePrivate)
+	}
 
 	c, err := smtp.NewClient(conn, config.Host)
 	if err != nil {
@@ -82,18 +93,10 @@ func init() {
 	config = conf.Config.Mail
 	auth = smtp.PlainAuth("", config.Username, config.Password, config.Host)
 	// TLS config
-	tlsConfig := &tls.Config{
+	tlsConfig = &tls.Config{
 		InsecureSkipVerify: true,
 		ServerName:         config.Host,
 	}
 
-	addr := fmt.Sprintf("%s:%d", config.Host, config.Port)
-	// Here is the key, you need to call tls.Dial instead of smtp.Dial
-	// for smtp servers running on 465 that require an ssl connection
-	// from the very beginning (no starttls)
-	var err error
-	conn, err = tls.Dial("tcp", addr, tlsConfig)
-	if err != nil {
-		log.Panic(err)
-	}
+	addr = fmt.Sprintf("%s:%d", config.Host, config.Port)
 }

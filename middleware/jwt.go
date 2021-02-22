@@ -26,7 +26,7 @@ func init() {
 		Realm:           "",
 		Key:             []byte(config.Server.JwtKey),
 		Timeout:         time.Hour * 24,
-		MaxRefresh:      time.Hour,
+		MaxRefresh:      time.Hour * 168,
 		IdentityKey:     "User",
 		PayloadFunc:     payload,
 		IdentityHandler: identityHandler,

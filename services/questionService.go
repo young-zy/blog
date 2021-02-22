@@ -1,7 +1,6 @@
 package services
 
 import (
-	"context"
 	"errors"
 	"fmt"
 
@@ -76,6 +75,7 @@ func AnswerQuestion(ctx *gin.Context, questionId *uint, content *string) bool {
 		return false
 	}
 	question.AnswerContent = content
+	question.IsAnswered = true
 	err = databases.UpdateQuestionWithTransaction(ctx, tx, question)
 	if err != nil {
 		tx.Rollback()
@@ -85,12 +85,10 @@ func AnswerQuestion(ctx *gin.Context, questionId *uint, content *string) bool {
 	tx.Commit()
 	// notify the email
 	if question.Email != nil && *question.Email != "" {
-		link := fmt.Sprintf("https://young-zy.com/question/%d", questionId)
+		link := fmt.Sprintf("https://young-zy.com/question/%d", *questionId)
 		message := fmt.Sprintf("您的提问已被回复: %s", link)
-		c, cancel := context.WithCancel(ctx)
-		defer cancel()
 		title := "您在提问箱的提问有新回答"
-		go common.SendMail(c, *question.Email, title, message)
+		go common.SendMail(ctx.Copy(), *question.Email, title, message)
 	}
 	return true
 }

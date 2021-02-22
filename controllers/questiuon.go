@@ -56,7 +56,7 @@ func newQuestion(c *gin.Context) {
 }
 
 type answerRequest struct {
-	answerContent string
+	AnswerContent string `binding:"required" json:"answerContent"`
 }
 
 func newAnswer(c *gin.Context) {
@@ -69,7 +69,7 @@ func newAnswer(c *gin.Context) {
 		_ = c.Error(errors.New("error parsing questionId")).SetType(gin.ErrorTypeBind)
 		return
 	}
-	if services.AnswerQuestion(c, common.IntToUintPointer(questionId), &answer.answerContent) {
+	if services.AnswerQuestion(c, common.IntToUintPointer(questionId), &answer.AnswerContent) {
 		c.JSON(http.StatusNoContent, nil)
 	}
 }

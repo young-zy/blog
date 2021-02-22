@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 
 	"blog/common"
 	"blog/middleware"
@@ -14,7 +15,7 @@ import (
 var Router = gin.Default()
 
 func init() {
-	Router.Use(cors())
+	//Router.Use(cors())
 	Router.Use(errorHandling())
 	Router.Use(logging())
 	Router.GET("/ping", func(c *gin.Context) {
@@ -67,6 +68,7 @@ func logging() gin.HandlerFunc {
 
 func errorHandling() gin.HandlerFunc {
 	return func(context *gin.Context) {
+		context.Set("traceId", uuid.New().String())
 		context.Next()
 		// error type, error meta, error string
 		//_ = context.Error(errors.New("")).SetType(gin.ErrorTypePublic)
