@@ -33,10 +33,25 @@ type MailConfig struct {
 	From     string `json:"from"`
 }
 
+type Restrict struct {
+	RestrictionCount int64 `json:"restrictionCount"`
+	RestrictionTime  int64 `json:"restrictionTime"`
+}
+
+type Redis struct {
+	Addr     string `json:"addr"`
+	Port     int    `json:"port"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	DB       int    `json:"db"`
+}
+
 type Conf struct {
 	Database DBConfig   `json:"database"`
 	Server   Server     `json:"server"`
 	Mail     MailConfig `json:"mail"`
+	Redis    Redis      `json:"redis"`
+	Restrict Restrict   `json:"restrict"`
 }
 
 func init() {

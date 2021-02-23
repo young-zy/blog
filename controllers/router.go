@@ -18,6 +18,7 @@ func init() {
 	//Router.Use(cors())
 	Router.Use(errorHandling())
 	Router.Use(logging())
+	Router.Use(middleware.ApiRestrict.RestrictionMiddleware())
 	Router.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",
