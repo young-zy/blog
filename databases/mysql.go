@@ -19,7 +19,6 @@ func init() {
 	var err error
 	config := conf.Config.Database
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=true", config.Username, config.Password, config.Address, config.Port, config.DBName, config.Charset)
-	log.Printf("connecting %s", dsn)
 	//dsn := "user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
 
 	myLogger := NewMyLogger(log.New(os.Stdout, "\r\n", log.LstdFlags),
