@@ -1,7 +1,8 @@
 package models
 
 import (
-	"regexp"
+	"github.com/gin-gonic/gin/binding"
+	"unicode"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -14,44 +15,71 @@ type User struct {
 }
 
 type LoginRequest struct {
-	Username string `json:"username" binding:"required,usernameRegex"`
-	Password string `json:"password" binding:"required,passwordRegex"`
+	Username string `json:"username" binding:"required,username"`
+	Password string `json:"password" binding:"required,password"`
 }
 
 type UserRegister struct {
-	Username string `json:"username" binding:"required,usernameRegex"`
+	Username string `json:"username" binding:"required,username"`
 	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,passwordRegex"`
+	Password string `json:"password" binding:"required,password"`
 }
 
 type UserUpdate struct {
 	Username    string `json:"username" binding:"required"`
 	Email       string `json:"email" binding:"omitempty,email"`
-	Password    string `json:"password" binding:"required,passwordRegex"`
-	NewPassword string `json:"newPassword" binding:"omitempty,passwordRegex"`
+	Password    string `json:"password" binding:"required,password"`
+	NewPassword string `json:"newPassword" binding:"omitempty,password"`
 }
 
 func init() {
-	validate := validator.New()
-	_ = validate.RegisterValidation("usernameRegex", usernameRegex)
-	_ = validate.RegisterValidation("passwordRegex", passwordRegex)
+	if validate, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		_ = validate.RegisterValidation("username", username)
+		_ = validate.RegisterValidation("password", password)
+	}
 }
 
-func usernameRegex(fl validator.FieldLevel) bool {
-	reg := regexp.MustCompile("^(?=.{4,20}$)(?![_0-9])(?!.*[_]{2})[a-zA-Z0-9_-]+(?<![_])$")
+func username(fl validator.FieldLevel) bool {
 	username := fl.Field().String()
-	if reg.MatchString(username) {
-		return true
+	var length int
+	for i, c := range username {
+		if i == 0 && (unicode.IsNumber(c) || c == '_') {
+			return false
+		}
+		length++
+		switch {
+		case unicode.IsNumber(c) || unicode.IsLetter(c) || c == '-' || c == '_' || c == '@':
+			continue
+		default:
+			return false
+		}
 	}
-	return false
+	return length >= 4 && length <= 20
 }
 
-func passwordRegex(fl validator.FieldLevel) bool {
+func password(fl validator.FieldLevel) bool {
 	// contains at least one capitalized, one uncapitalized, one number, length at least 8 but no more than 32
-	reg := regexp.MustCompile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z!@#$%^&*\\d]{8,32}$")
 	pass := fl.Field().String()
-	if reg.MatchString(pass) {
-		return true
+	var (
+		length int
+		number bool
+		upper  bool
+		normal bool
+	)
+	for _, c := range pass {
+		length++
+		switch {
+		case unicode.IsNumber(c):
+			number = true
+		case unicode.IsUpper(c):
+			upper = true
+		case unicode.IsPunct(c) || unicode.IsSymbol(c):
+			continue
+		case unicode.IsLetter(c):
+			normal = true
+		default:
+			return false
+		}
 	}
-	return false
+	return length > 8 && length < 32 && normal && upper && number
 }
