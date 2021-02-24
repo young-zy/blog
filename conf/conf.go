@@ -71,5 +71,8 @@ func init() {
 		log.Fatal(err)
 	}
 	err = json.Unmarshal(confBytes, Config)
+	if err != nil {
+		log.Panicln("error while unmarshalling config json", err)
+	}
 	log.Println("configuration loaded successfully")
 }
