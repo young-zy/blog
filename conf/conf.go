@@ -11,9 +11,10 @@ import (
 var Config *Conf
 
 type Server struct {
-	Listen string `json:"listen"`
-	Port   int    `json:"port"`
-	JwtKey string `json:"jwt_key"`
+	Listen             string `json:"listen"`
+	Port               int    `json:"port"`
+	JwtKey             string `json:"jwt_key"`
+	RecaptchaSecretKey string `json:"recaptchaKey"`
 }
 
 type DBConfig struct {
