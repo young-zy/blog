@@ -2,21 +2,33 @@
   "server": {
     "listen": "0.0.0.0",
     "port": 25568,
-    "jwt-key": ""
+    "jwt-key": "",
+    "captchaKey": ""
   },
   "database": {
-    "username": "blog",
-    "password": "blog123@",
-    "address": "127.0.0.1",
+    "username": "",
+    "password": "",
+    "address": "",
     "port": 3306,
     "db_name": "blog",
     "charset": "utf8"
   },
   "mail": {
     "host": "",
-    "port": ,
-    "username": ,
-    "password": ,
-    "from": ,
+    "port": 465,
+    "username": "",
+    "password": "",
+    "from": ""
+  },
+  "redis": {
+    "addr": "",
+    "port": 6379,
+    "username": "",
+    "password": "",
+    "db": 0
+  },
+  "restrict": {
+    "restrictionCount": 100,
+    "restrictionTime": 3600
   }
 }

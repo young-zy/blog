@@ -18,7 +18,7 @@ func initQuestionGroup() {
 	{
 		questionGroup.GET("", getQuestions)
 		questionGroup.GET("/:questionId", getQuestion)
-		questionGroup.POST("", newQuestion)
+		questionGroup.POST("", middleware.Recaptcha.Middleware(), newQuestion)
 		questionGroup.POST("/:questionId/answer", middleware.AuthMiddleware.MiddlewareFunc(), newAnswer)
 		questionGroup.DELETE("/:questionId", middleware.AuthMiddleware.MiddlewareFunc(), deleteQuestion)
 		questionGroup.PATCH("/:questionId", middleware.AuthMiddleware.MiddlewareFunc(), updateAnswer)
