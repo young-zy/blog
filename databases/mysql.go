@@ -13,7 +13,21 @@ import (
 	"blog/conf"
 )
 
-var db *gorm.DB
+var DefaultDb *gorm.DB
+
+var Default *Transaction
+
+type Transaction struct {
+	tx *gorm.DB
+}
+
+func (tx *Transaction) Rollback() {
+	tx.tx.Rollback()
+}
+
+func (tx *Transaction) Commit() {
+	tx.tx.Commit()
+}
 
 func init() {
 	var err error
@@ -29,7 +43,7 @@ func init() {
 		},
 	)
 
-	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+	DefaultDb, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: myLogger,
 	})
 
@@ -37,7 +51,9 @@ func init() {
 		log.Fatal(err)
 	}
 
-	sqlDB, err := db.DB()
+	Default = &Transaction{tx: DefaultDb}
+
+	sqlDB, err := DefaultDb.DB()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -46,12 +62,12 @@ func init() {
 	sqlDB.SetConnMaxLifetime(time.Hour)
 }
 
-func GetTransaction() *gorm.DB {
-	return db.Begin()
+func GetTransaction() *Transaction {
+	return &Transaction{tx: DefaultDb.Begin()}
 }
 
 func Close() {
-	sqlDB, err := db.DB()
+	sqlDB, err := DefaultDb.DB()
 	if err != nil {
 		panic("failed to close db")
 	}

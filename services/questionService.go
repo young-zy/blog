@@ -12,9 +12,9 @@ import (
 	"blog/models"
 )
 
-func GetQuestion(ctx *gin.Context, questionId *uint) (question *models.QuestionResponse, ok bool) {
+func GetQuestion(ctx *gin.Context, questionId *uint) (questionResp *models.QuestionResponse, ok bool) {
 	ok = true
-	question, err := databases.GetQuestion(ctx, questionId)
+	question, err := databases.Default.GetQuestion(ctx, questionId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			_ = ctx.Error(common.NewNotFoundError("question not found")).SetType(gin.ErrorTypePublic)
@@ -23,12 +23,13 @@ func GetQuestion(ctx *gin.Context, questionId *uint) (question *models.QuestionR
 		}
 		ok = false
 	}
+	questionResp = question.QuestionResponse
 	return
 }
 
 func GetQuestions(ctx *gin.Context, page int, size int, filter string) (questionListResponse *models.QuestionListResponse, ok bool) {
 	ok = true
-	questionList, totalCount, err := databases.GetQuestions(ctx, page, size, filter)
+	questionList, totalCount, err := databases.Default.GetQuestions(ctx, page, size, filter)
 	if err != nil {
 		// check if err is mysql error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -48,7 +49,7 @@ func GetQuestions(ctx *gin.Context, page int, size int, filter string) (question
 
 // add a question using databases.AddQuestion, returns if operation is successful
 func AddQuestion(ctx *gin.Context, question *models.NewQuestionRequest) bool {
-	err := databases.AddQuestion(ctx, question)
+	err := databases.Default.AddQuestion(ctx, question)
 	if err != nil {
 		common.NewInternalError(ctx, err)
 		return false
@@ -59,7 +60,7 @@ func AddQuestion(ctx *gin.Context, question *models.NewQuestionRequest) bool {
 // returns if operation is successful
 func AnswerQuestion(ctx *gin.Context, questionId *uint, content *string) bool {
 	tx := databases.GetTransaction()
-	question, err := databases.GetQuestionWithTransaction(ctx, tx, questionId)
+	question, err := tx.GetQuestion(ctx, questionId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			_ = ctx.Error(common.NewNotFoundError("question not found")).SetType(gin.ErrorTypePublic)
@@ -76,7 +77,7 @@ func AnswerQuestion(ctx *gin.Context, questionId *uint, content *string) bool {
 	}
 	question.AnswerContent = content
 	question.IsAnswered = true
-	err = databases.UpdateQuestionWithTransaction(ctx, tx, question)
+	err = tx.UpdateQuestion(ctx, question)
 	if err != nil {
 		tx.Rollback()
 		common.NewInternalError(ctx, err)
@@ -95,7 +96,7 @@ func AnswerQuestion(ctx *gin.Context, questionId *uint, content *string) bool {
 
 func UpdateAnswer(ctx *gin.Context, questionId *uint, content *string) bool {
 	tx := databases.GetTransaction()
-	question, err := databases.GetQuestionWithTransaction(ctx, tx, questionId)
+	question, err := tx.GetQuestion(ctx, questionId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			_ = ctx.Error(common.NewNotFoundError("question not found")).SetType(gin.ErrorTypePublic)
@@ -106,7 +107,7 @@ func UpdateAnswer(ctx *gin.Context, questionId *uint, content *string) bool {
 		return false
 	}
 	question.AnswerContent = content
-	err = databases.UpdateQuestionWithTransaction(ctx, tx, question)
+	err = tx.UpdateQuestion(ctx, question)
 	if err != nil {
 		common.NewInternalError(ctx, err)
 		tx.Rollback()
@@ -117,7 +118,7 @@ func UpdateAnswer(ctx *gin.Context, questionId *uint, content *string) bool {
 }
 
 func DeleteQuestion(ctx *gin.Context, questionId *uint) bool {
-	err := databases.DeleteQuestion(ctx, questionId)
+	err := databases.Default.DeleteQuestion(ctx, questionId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			_ = ctx.Error(common.NewNotFoundError("question not found")).SetType(gin.ErrorTypePublic)

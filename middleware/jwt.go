@@ -62,6 +62,8 @@ func payload(data interface{}) jwt.MapClaims {
 		return jwt.MapClaims{
 			"Id":       v.Id,
 			"Username": v.Username,
+			"Email":    v.Email,
+			"Role":     v.Role,
 		}
 	}
 	return jwt.MapClaims{}
@@ -72,6 +74,8 @@ func identityHandler(c *gin.Context) interface{} {
 	return &models.User{
 		Id:       int(claims["Id"].(float64)),
 		Username: claims["Username"].(string),
+		Email:    claims["Email"].(string),
+		Role:     models.Role(claims["Role"].(float64)),
 	}
 }
 
@@ -79,7 +83,7 @@ func authenticator(c *gin.Context) (interface{}, error) {
 	var loginRequest models.LoginRequest
 	// check
 	if err := c.ShouldBind(&loginRequest); err != nil {
-		return nil, jwt.ErrMissingLoginValues
+		return nil, err
 	}
 	// retrieve user from database and check password
 	if user, ok := services.GetUser(c, loginRequest.Username); ok {
@@ -90,6 +94,7 @@ func authenticator(c *gin.Context) (interface{}, error) {
 			Id:       user.Id,
 			Username: user.Username,
 			Email:    user.Email,
+			Role:     user.Role,
 		}, nil
 	} else {
 		return nil, errors.New("username does not exist")

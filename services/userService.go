@@ -27,7 +27,7 @@ func Register(c *gin.Context, username, password, email string) bool {
 		Email:          email,
 	}
 	// insert user into database
-	if err := databases.AddUser(user); err != nil {
+	if err := databases.Default.AddUser(c, user); err != nil {
 		// check if error is mysql error
 		mySQLError, ok := err.(*mysql.MySQLError)
 		if ok {
@@ -47,7 +47,7 @@ func Register(c *gin.Context, username, password, email string) bool {
 // acquire user by username
 func GetUser(c *gin.Context, username string) (user *models.User, ok bool) {
 	ok = true
-	user, err := databases.GetUser(username)
+	user, err := databases.Default.GetUser(c, username)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			_ = c.Error(common.NewNotFoundError("user not found"))
@@ -71,7 +71,7 @@ func UpdateUser(c *gin.Context, user *models.User) {
 }
 
 func DeleteUser(c *gin.Context, userId int) {
-	err := databases.DeleteUser(userId)
+	err := databases.Default.DeleteUser(c, userId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			_ = c.Error(common.NewNotFoundError("user to be deleted not found")).SetType(gin.ErrorTypePublic)

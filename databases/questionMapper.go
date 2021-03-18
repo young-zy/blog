@@ -11,8 +11,8 @@ import (
 
 // Get a list of questions,
 // filter could be solved or unsolved, any other values(including unprovided).
-func GetQuestions(ctx context.Context, page int, size int, filter string) (questionList []*models.QuestionInListResponse, totalCount int64, err error) {
-	questionDb := db.WithContext(ctx).
+func (tx *Transaction) GetQuestions(ctx context.Context, page int, size int, filter string) (questionList []*models.QuestionInListResponse, totalCount int64, err error) {
+	questionDb := tx.tx.WithContext(ctx).
 		Table("questions").
 		Model(&models.QuestionResponse{})
 	if filter == "solved" {
@@ -31,54 +31,58 @@ func GetQuestions(ctx context.Context, page int, size int, filter string) (quest
 	return
 }
 
-// get a list of questions in transaction
-func GetQuestionsWithTransaction(ctx context.Context, tx *gorm.DB, page int, size int) (questionList []*models.QuestionResponse, totalCount int64, err error) {
-	questionDb := tx.WithContext(ctx).Table("questions").Model(&models.QuestionResponse{})
-	err = questionDb.
-		Count(&totalCount).
-		Offset((page - 1) * size).
-		Limit(size).
-		Order("is_answered desc").
-		Order("id desc").
-		Find(&questionList).
-		Error
-	return
-}
+//// get a list of questions in transaction
+//func GetQuestionsWithTransaction(ctx context.Context, tx *gorm.DB, page int, size int) (questionList []*models.QuestionResponse, totalCount int64, err error) {
+//	questionDb := tx.WithContext(ctx).Table("questions").Model(&models.QuestionResponse{})
+//	err = questionDb.
+//		Count(&totalCount).
+//		Offset((page - 1) * size).
+//		Limit(size).
+//		Order("is_answered desc").
+//		Order("id desc").
+//		Find(&questionList).
+//		Error
+//	return
+//}
 
-// get a single question bu questionId
-func GetQuestion(ctx context.Context, questionId *uint) (question *models.QuestionResponse, err error) {
-	question = &models.QuestionResponse{}
-	err = db.WithContext(ctx).Model(&models.Question{}).Where(&models.Question{Id: questionId}).First(question).Error
-	return
-}
+//// get a single question bu questionId
+//func GetQuestion(ctx context.Context, questionId *uint) (question *models.QuestionResponse, err error) {
+//	question = &models.QuestionResponse{}
+//	err = DefaultDb.WithContext(ctx).Model(&models.Question{}).Where(&models.Question{Id: questionId}).First(question).Error
+//	return
+//}
 
-func GetQuestionWithTransaction(ctx context.Context, tx *gorm.DB, questionId *uint) (question *models.Question, err error) {
+func (tx *Transaction) GetQuestion(ctx context.Context, questionId *uint) (question *models.Question, err error) {
 	question = &models.Question{}
-	err = tx.WithContext(ctx).Where(&models.Question{Id: questionId}).First(question).Error
+	err = tx.tx.WithContext(ctx).Where("id = ?", questionId).First(question).Error
 	return
 }
 
 // add a question to database
-func AddQuestion(ctx context.Context, question *models.NewQuestionRequest) error {
+func (tx *Transaction) AddQuestion(ctx context.Context, question *models.NewQuestionRequest) error {
 	createTime := time.Now()
-	return db.WithContext(ctx).Create(&models.Question{
-		QuestionContent: question.QuestionContent,
-		Email:           question.Email,
-		IsAnswered:      false,
-		CreateTime:      &createTime,
+	return tx.tx.WithContext(ctx).Create(&models.Question{
+		QuestionResponse: &models.QuestionResponse{
+			QuestionInListResponse: &models.QuestionInListResponse{
+				QuestionContent: question.QuestionContent,
+				CreateTime:      &createTime,
+				IsAnswered:      false,
+			},
+		},
+		Email: question.Email,
 	}).Error
 }
 
-// update a question object, must check existence in a transaction before calling this method
-func UpdateQuestion(ctx context.Context, question *models.Question) error {
-	return db.WithContext(ctx).Model(&models.Question{}).Updates(question).Error
-}
+//// update a question object, must check existence in a transaction before calling this method
+//func UpdateQuestion(ctx context.Context, question *models.Question) error {
+//	return DefaultDb.WithContext(ctx).Model(&models.Question{}).Updates(question).Error
+//}
 
 // update a question object
-func UpdateQuestionWithTransaction(ctx context.Context, tx *gorm.DB, question *models.Question) error {
+func (tx *Transaction) UpdateQuestion(ctx context.Context, question *models.Question) error {
 	newAnswerTime := time.Now()
 	question.AnswerTime = &newAnswerTime
-	return tx.Session(&gorm.Session{AllowGlobalUpdate: true}).
+	return tx.tx.Session(&gorm.Session{AllowGlobalUpdate: true}).
 		WithContext(ctx).
 		Model(&models.Question{}).
 		Where("id = ?", question.Id).
@@ -86,6 +90,6 @@ func UpdateQuestionWithTransaction(ctx context.Context, tx *gorm.DB, question *m
 		Error
 }
 
-func DeleteQuestion(ctx context.Context, questionId *uint) error {
-	return db.WithContext(ctx).Delete(&models.Question{Id: questionId}).Error
+func (tx *Transaction) DeleteQuestion(ctx context.Context, questionId *uint) error {
+	return tx.tx.WithContext(ctx).Delete(&models.Question{}, questionId).Error
 }
