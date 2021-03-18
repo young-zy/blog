@@ -49,6 +49,10 @@ func NewBadRequestError(message string) *SelfDefinedError {
 	return NewSelfDefinedError(http.StatusBadRequest, message)
 }
 
+func NewForbiddenError(message string) *SelfDefinedError {
+	return NewSelfDefinedError(http.StatusForbidden, message)
+}
+
 func NewInternalError(ctx *gin.Context, err error) {
 	_ = ctx.Error(NewInternalServerError("something bad happens")).SetType(gin.ErrorTypePublic)
 	_ = ctx.Error(err).SetType(gin.ErrorTypePrivate)
