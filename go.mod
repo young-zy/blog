@@ -4,6 +4,8 @@ go 1.16
 
 require (
 	github.com/appleboy/gin-jwt/v2 v2.6.4
+	github.com/casbin/casbin/v2 v2.23.4 // indirect
+	github.com/casbin/gorm-adapter/v3 v3.2.0 // indirect
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/go-redis/redis/v8 v8.6.0 // indirect

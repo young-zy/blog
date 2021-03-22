@@ -15,6 +15,7 @@ type Server struct {
 	Port               int    `json:"port"`
 	JwtKey             string `json:"jwt_key"`
 	RecaptchaSecretKey string `json:"recaptchaKey"`
+	CasModelPath       string `json:"casModelPath"`
 }
 
 type DBConfig struct {
