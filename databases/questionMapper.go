@@ -2,10 +2,10 @@ package databases
 
 import (
 	"context"
-	"time"
 
 	"gorm.io/gorm"
 
+	"blog/common"
 	"blog/models"
 )
 
@@ -60,12 +60,11 @@ func (tx *Transaction) GetQuestion(ctx context.Context, questionId *uint) (quest
 
 // add a question to database
 func (tx *Transaction) AddQuestion(ctx context.Context, question *models.NewQuestionRequest) error {
-	createTime := time.Now()
 	return tx.tx.WithContext(ctx).Create(&models.Question{
 		QuestionResponse: &models.QuestionResponse{
 			QuestionInListResponse: &models.QuestionInListResponse{
 				QuestionContent: question.QuestionContent,
-				CreateTime:      &createTime,
+				CreateTime:      common.Now(),
 				IsAnswered:      false,
 			},
 		},
@@ -80,8 +79,7 @@ func (tx *Transaction) AddQuestion(ctx context.Context, question *models.NewQues
 
 // update a question object
 func (tx *Transaction) UpdateQuestion(ctx context.Context, question *models.Question) error {
-	newAnswerTime := time.Now()
-	question.AnswerTime = &newAnswerTime
+	question.AnswerTime = common.Now()
 	return tx.tx.Session(&gorm.Session{AllowGlobalUpdate: true}).
 		WithContext(ctx).
 		Model(&models.Question{}).

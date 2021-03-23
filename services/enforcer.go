@@ -1,10 +1,11 @@
-package common
+package services
 
 import (
-	"blog/conf"
-	"blog/databases"
 	"github.com/casbin/casbin/v2"
 	gormAdapter "github.com/casbin/gorm-adapter/v3"
+
+	"blog/conf"
+	"blog/databases"
 )
 
 var Enforcer *casbin.Enforcer

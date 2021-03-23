@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 
+	"blog/common"
 	"blog/conf"
 	"blog/models"
 	"blog/services"
@@ -72,7 +73,7 @@ func payload(data interface{}) jwt.MapClaims {
 func identityHandler(c *gin.Context) interface{} {
 	claims := jwt.ExtractClaims(c)
 	return &models.User{
-		Id:       int(claims["Id"].(float64)),
+		Id:       common.IntToUintPointer(int(claims["Id"].(float64))),
 		Username: claims["Username"].(string),
 		Email:    claims["Email"].(string),
 		Role:     models.Role(claims["Role"].(float64)),

@@ -1,17 +1,44 @@
 package models
 
 import (
-	"github.com/gin-gonic/gin/binding"
 	"unicode"
 
+	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 )
 
+type Role int
+
+const (
+	RoleUser Role = iota
+	RoleAdmin
+)
+
+func (r *Role) String() string {
+	return [...]string{"user", "admin"}[*r]
+}
+
 type User struct {
-	Id             int    `gorm:"type:INT;NOT NULL" json:"id"`
+	Id             *uint  `gorm:"type:INT;NOT NULL" json:"id"`
 	Username       string `gorm:"type:VARCHAR(45);NOT NULL" json:"username"`
 	Email          string `gorm:"type:VARCHAR(100);NOT NULL" json:"email"`
 	HashedPassword string `gorm:"type:VARCHAR(300);NOT NULL" json:"-"`
+	Role           Role   `gorm:"type:INT;NOT NULL" json:"role"`
+	Avatar         string `gorm:"type:MEDIUMTEXT" json:"avatar"`
+}
+
+type SimpleUser struct {
+	Id       *uint  `json:"id"`
+	Username string `json:"username"`
+	Avatar   string `json:"avatar"`
+}
+
+func (u *User) GetSimpleUser() *SimpleUser {
+	return &SimpleUser{
+		Id:       u.Id,
+		Username: u.Username,
+		Avatar:   u.Avatar,
+	}
 }
 
 type LoginRequest struct {

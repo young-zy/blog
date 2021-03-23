@@ -50,7 +50,7 @@ func GetUser(c *gin.Context, username string) (user *models.User, ok bool) {
 	user, err := databases.Default.GetUser(c, username)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			_ = c.Error(common.NewNotFoundError("user not found"))
+			_ = c.Error(common.NewNotFoundError("user not found")).SetType(gin.ErrorTypePublic)
 		} else {
 			common.NewInternalError(c, err)
 		}
@@ -59,8 +59,43 @@ func GetUser(c *gin.Context, username string) (user *models.User, ok bool) {
 	return
 }
 
+func SetAvatar(c *gin.Context, username, avatar string) (ok bool) {
+	ok = false
+	tx := databases.GetTransaction()
+	user, err := tx.GetUser(c, username)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			_ = c.Error(common.NewNotFoundError("user not found")).SetType(gin.ErrorTypePublic)
+		} else {
+			common.NewInternalError(c, err)
+		}
+		tx.Rollback()
+		return
+	}
+	user.Avatar = avatar
+	err = tx.UpdateUser(c, user)
+	if err != nil {
+		common.NewInternalError(c, err)
+		tx.Rollback()
+		return
+	}
+	tx.Commit()
+	ok = true
+	return
+}
+
 func UpdateUser(c *gin.Context, user *models.User) {
-	err := databases.UpdateUser(user)
+	operator, exists := c.Get("User")
+	if !exists {
+		common.NewInternalError(c, errors.New("user object not found in context"))
+		return
+	}
+	perm, err := Enforcer.Enforce(operator.(models.User), user, "updateUser")
+	if err != nil || !perm {
+		_ = c.Error(common.NewForbiddenError("permission denied")).SetType(gin.ErrorTypePublic)
+		return
+	}
+	err = databases.Default.UpdateUser(c, user)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			_ = c.Error(common.NewNotFoundError("user to be updated not found")).SetType(gin.ErrorTypePublic)
@@ -70,7 +105,7 @@ func UpdateUser(c *gin.Context, user *models.User) {
 	}
 }
 
-func DeleteUser(c *gin.Context, userId int) {
+func DeleteUser(c *gin.Context, userId *uint) {
 	err := databases.Default.DeleteUser(c, userId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
