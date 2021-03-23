@@ -1,10 +1,13 @@
 package controllers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 
+	"blog/common"
+	"blog/middleware"
 	"blog/models"
 	"blog/services"
 )
@@ -12,14 +15,41 @@ import (
 func initUserGroup() {
 	userGroup := Router.Group("/user")
 	{
+		userGroup.GET("", middleware.AuthMiddleware.MiddlewareFunc(), getSelf)
+		userGroup.POST("/avatar", middleware.AuthMiddleware.MiddlewareFunc(), setAvatar)
 		userGroup.POST("", register)
 		userGroup.GET("/:username", getUser)
 	}
 }
 
 func getUser(c *gin.Context) {
-	username := c.Param("userId")
-	services.GetUser(c, username)
+	username := c.Param("username")
+	user, ok := services.GetUser(c, username)
+	if ok {
+		c.JSON(http.StatusOK, user)
+	}
+}
+
+func setAvatar(c *gin.Context) {
+	req := &setAvatarRequest{}
+	user, exists := c.Get("User")
+	if !exists {
+		_ = common.NewNotFoundError("user not found")
+	}
+	services.SetAvatar(c, user.(models.User).Username, req.Avatar)
+}
+
+type setAvatarRequest struct {
+	// base 64 of avatar image
+	Avatar string `json:"avatar" binding:"required"`
+}
+
+func getSelf(c *gin.Context) {
+	user, ok := c.Get("User")
+	if !ok {
+		common.NewInternalError(c, errors.New("identity not found in context"))
+	}
+	c.JSON(http.StatusOK, user)
 }
 
 func register(c *gin.Context) {

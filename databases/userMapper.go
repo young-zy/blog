@@ -19,6 +19,12 @@ func (tx *Transaction) GetUser(c context.Context, username string) (user *models
 	return
 }
 
+func (tx *Transaction) GetUserById(c context.Context, userId *uint) (user *models.User, err error) {
+	user = &models.User{}
+	err = tx.tx.WithContext(c).Where(&models.User{Id: userId}).First(user).Error
+	return
+}
+
 // add a new user to database
 func (tx *Transaction) AddUser(c context.Context, user *models.User) error {
 	return tx.tx.WithContext(c).Create(user).Error
@@ -35,6 +41,6 @@ func (tx *Transaction) UpdateUser(c context.Context, user *models.User) error {
 }
 
 // delete a user by id
-func (tx *Transaction) DeleteUser(c context.Context, ID int) error {
+func (tx *Transaction) DeleteUser(c context.Context, ID *uint) error {
 	return tx.tx.WithContext(c).Delete(&models.User{Id: ID}).Error
 }

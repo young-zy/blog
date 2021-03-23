@@ -23,22 +23,29 @@ func (tx *Transaction) GetPosts(c context.Context, page int, size int) (postList
 	return
 }
 
+func (tx *Transaction) GetPost(c context.Context, postId *uint) (post *models.Post, err error) {
+	err = tx.tx.WithContext(c).
+		Model(&models.Post{}).
+		Where("id = ?", *postId).
+		Find(&post).
+		Error
+	return
+}
+
 func (tx *Transaction) UpdatePost(c context.Context, post *models.Post) (rowsAffected int64, err error) {
-	// TODO wrong use of save
-	result := tx.tx.WithContext(c).Where("id = ?", post.Id).Save(post)
+	result := tx.tx.WithContext(c).Where("id = ?", post.Id).Updates(post)
 	rowsAffected = result.RowsAffected
 	err = result.Error
 	return
 }
 
-func (tx *Transaction) DeletePost(c context.Context, postId uint) (rowsAffected int64, err error) {
+func (tx *Transaction) DeletePost(c context.Context, postId *uint) (rowsAffected int64, err error) {
 	// delete all the replies of the post
-	result := tx.tx.WithContext(c).Delete(&models.Reply{
-		PostsId: postId,
-		// delete the post
-	}).Delete(&models.Post{
-		Id: postId,
-	})
+	result := tx.tx.WithContext(c).
+		Where("posts_id = ?", *postId).
+		Delete(&models.Reply{}).
+		Where("id = ?", postId).
+		Delete(&models.Post{})
 	rowsAffected = result.RowsAffected
 	err = result.Error
 	return
