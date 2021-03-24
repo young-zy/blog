@@ -31,12 +31,13 @@ func init() {
 		"timeout-or-duplicate":   "The response is no longer valid: either is too old or has been used previously.",
 	}
 	config := conf.Config
-	Recaptcha = NewRecaptchaMiddleware(config.Server.RecaptchaSecretKey, "https://recaptcha.net")
+	Recaptcha = newRecaptchaMiddleware(config.Server.RecaptchaSecretKey, "https://recaptcha.net")
 	requestClient = &http.Client{
 		Timeout: time.Second * 5,
 	}
 }
 
+// RecaptchaMiddleware is a recaptcha authentication middleware
 type RecaptchaMiddleware struct {
 	secretKey string
 	baseUrl   string
@@ -49,7 +50,8 @@ type captchaResponseBody struct {
 	ErrorCodes         []string  `json:"error-codes"`  // optional
 }
 
-func NewRecaptchaMiddleware(secret string, baseUrl string) *RecaptchaMiddleware {
+// newRecaptchaMiddleware creates a new recaptcha middleware
+func newRecaptchaMiddleware(secret string, baseUrl string) *RecaptchaMiddleware {
 	return &RecaptchaMiddleware{
 		secretKey: secret,
 		baseUrl:   baseUrl,
@@ -74,6 +76,7 @@ func (r *RecaptchaMiddleware) sendApiRequest(c *gin.Context, token string) (*cap
 	return respBody, nil
 }
 
+// Middleware returns a gin handler function that handles the recaptcha token
 func (r *RecaptchaMiddleware) Middleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		resp, err := r.sendApiRequest(c, c.Request.Header.Get("captchaToken"))

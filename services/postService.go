@@ -12,6 +12,7 @@ import (
 	"blog/models"
 )
 
+// GetAllPosts returns the post list
 func GetAllPosts(c *gin.Context, page int, size int) (resp *models.PostListResponse, ok bool) {
 	posts, totCount, err := databases.Default.GetPosts(c, page, size)
 	if err != nil {
@@ -30,8 +31,9 @@ func GetAllPosts(c *gin.Context, page int, size int) (resp *models.PostListRespo
 	return
 }
 
-func GetPost(c *gin.Context, postId *uint) (resp *models.PostResponse, ok bool) {
-	post, err := databases.Default.GetPost(c, postId)
+// GetPost returns a single post
+func GetPost(c *gin.Context, postID *uint) (resp *models.PostResponse, ok bool) {
+	post, err := databases.Default.GetPost(c, postID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			_ = c.Error(common.NewNotFoundError("post not found")).SetType(gin.ErrorTypePublic)
@@ -40,7 +42,7 @@ func GetPost(c *gin.Context, postId *uint) (resp *models.PostResponse, ok bool) 
 		}
 		return
 	}
-	author, err := databases.Default.GetUserById(c, &post.Author)
+	author, err := databases.Default.GetUserByID(c, &post.Author)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			_ = c.Error(common.NewNotFoundError("post not found")).SetType(gin.ErrorTypePublic)
@@ -56,7 +58,7 @@ func GetPost(c *gin.Context, postId *uint) (resp *models.PostResponse, ok bool) 
 		Post:   post,
 		Author: author.GetSimpleUser(),
 	}
-	//replies, replyCount, err := databases.Default.GetReplies(c, postId, page, size)
+	//replies, replyCount, err := databases.Default.GetReplies(c, postID, page, size)
 	//if err != nil {
 	//	if errors.Is(err, gorm.ErrRecordNotFound) {
 	//		resp.Replies = make([]*models.Reply, 0)
@@ -71,6 +73,7 @@ func GetPost(c *gin.Context, postId *uint) (resp *models.PostResponse, ok bool) 
 	return
 }
 
+// AddPost creates a new post
 func AddPost(c *gin.Context, post *models.PostRequest) (ok bool) {
 	// get user from context
 	userInterface, exists := c.Get("User")
@@ -79,7 +82,7 @@ func AddPost(c *gin.Context, post *models.PostRequest) (ok bool) {
 	}
 	user := userInterface.(*models.User)
 	// enforce
-	res, err := Enforcer.Enforce(user, "", "add post")
+	res, err := enforcer.Enforce(user, "", "add post")
 	if err != nil {
 		_ = c.Error(common.NewInternalServerError("failed to enforce")).SetType(gin.ErrorTypePrivate)
 	}
@@ -91,7 +94,7 @@ func AddPost(c *gin.Context, post *models.PostRequest) (ok bool) {
 	err = tx.AddPost(c, &models.Post{
 		Title:       post.Title,
 		Content:     post.Content,
-		Author:      *user.Id,
+		Author:      *user.ID,
 		LastUpdated: time.Time{},
 	})
 	if err != nil {
@@ -104,9 +107,10 @@ func AddPost(c *gin.Context, post *models.PostRequest) (ok bool) {
 	return
 }
 
-func DeletePost(c *gin.Context, postId *uint) (ok bool) {
+// DeletePost deletes a post
+func DeletePost(c *gin.Context, postID *uint) (ok bool) {
 	tx := databases.GetTransaction()
-	rowsAffected, err := tx.DeletePost(c, postId)
+	rowsAffected, err := tx.DeletePost(c, postID)
 	if err != nil {
 		common.NewInternalError(c, err)
 		tx.Rollback()
@@ -122,8 +126,9 @@ func DeletePost(c *gin.Context, postId *uint) (ok bool) {
 	return
 }
 
-func GetReplies(c *gin.Context, postId *uint, page int, size int) (replyResponse *models.ReplyResponse, ok bool) {
-	replies, replyCount, err := databases.Default.GetReplies(c, postId, page, size)
+// GetReplies returns a list of replies
+func GetReplies(c *gin.Context, postID *uint, page int, size int) (replyResponse *models.ReplyResponse, ok bool) {
+	replies, replyCount, err := databases.Default.GetReplies(c, postID, page, size)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			replyResponse = &models.ReplyResponse{
@@ -143,9 +148,10 @@ func GetReplies(c *gin.Context, postId *uint, page int, size int) (replyResponse
 	return
 }
 
-func ReplyPost(c *gin.Context, reply *models.ReplyRequest, postId *uint) (ok bool) {
+// ReplPost replies a post
+func ReplyPost(c *gin.Context, reply *models.ReplyRequest, postID *uint) (ok bool) {
 	tx := databases.GetTransaction()
-	_, err := tx.GetPost(c, postId)
+	_, err := tx.GetPost(c, postID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			_ = c.Error(common.NewNotFoundError("post not found")).SetType(gin.ErrorTypePublic)
@@ -159,7 +165,7 @@ func ReplyPost(c *gin.Context, reply *models.ReplyRequest, postId *uint) (ok boo
 	err = tx.AddReply(c, &models.Reply{
 		Content:     reply.Content,
 		Email:       reply.Email,
-		PostsId:     *postId,
+		PostsID:     *postID,
 		LastUpdated: &now,
 	})
 	if err != nil {
@@ -172,9 +178,10 @@ func ReplyPost(c *gin.Context, reply *models.ReplyRequest, postId *uint) (ok boo
 	return
 }
 
-func UpdateReply(c *gin.Context, replyRequest *models.ReplyRequest, replyId *uint) (ok bool) {
+// UpdateReply updates a reply, works only when a user is logged in and its email is the same with the reply
+func UpdateReply(c *gin.Context, replyRequest *models.ReplyRequest, replyID *uint) (ok bool) {
 	tx := databases.GetTransaction()
-	reply, err := tx.GetReply(c, replyId)
+	reply, err := tx.GetReply(c, replyID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			_ = c.Error(common.NewNotFoundError("reply not found")).SetType(gin.ErrorTypePublic)
@@ -189,7 +196,7 @@ func UpdateReply(c *gin.Context, replyRequest *models.ReplyRequest, replyId *uin
 	//if !exists {
 	//	common.NewInternalError(c, errors.New("user object not found in context"))
 	//}
-	//res, err := common.Enforcer.Enforce(user, reply, "update reply")
+	//res, err := common.enforcer.Enforce(user, reply, "update reply")
 	//if err != nil {
 	//	_ = c.Error(errors.New("enforcer encountered an error")).SetType(gin.ErrorTypePrivate)
 	//}
@@ -211,9 +218,10 @@ func UpdateReply(c *gin.Context, replyRequest *models.ReplyRequest, replyId *uin
 	return
 }
 
-func DeleteReply(c *gin.Context, replyId *uint) (ok bool) {
+// DeleteReply deletes a reply
+func DeleteReply(c *gin.Context, replyID *uint) (ok bool) {
 	tx := databases.GetTransaction()
-	rowsAffected, err := tx.DeleteReply(c, replyId)
+	rowsAffected, err := tx.DeleteReply(c, replyID)
 	if err != nil {
 		common.NewInternalError(c, err)
 	}

@@ -12,9 +12,10 @@ import (
 	"blog/models"
 )
 
-func GetQuestion(ctx *gin.Context, questionId *uint) (questionResp *models.QuestionResponse, ok bool) {
+// GetQuestion gets a single question
+func GetQuestion(ctx *gin.Context, questionID *uint) (questionResp *models.QuestionResponse, ok bool) {
 	ok = true
-	question, err := databases.Default.GetQuestion(ctx, questionId)
+	question, err := databases.Default.GetQuestion(ctx, questionID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			_ = ctx.Error(common.NewNotFoundError("question not found")).SetType(gin.ErrorTypePublic)
@@ -27,6 +28,7 @@ func GetQuestion(ctx *gin.Context, questionId *uint) (questionResp *models.Quest
 	return
 }
 
+// GetQuestions get a list of questions
 func GetQuestions(ctx *gin.Context, page int, size int, filter string) (questionListResponse *models.QuestionListResponse, ok bool) {
 	ok = true
 	questionList, totalCount, err := databases.Default.GetQuestions(ctx, page, size, filter)
@@ -47,7 +49,7 @@ func GetQuestions(ctx *gin.Context, page int, size int, filter string) (question
 	return
 }
 
-// add a question using databases.AddQuestion, returns if operation is successful
+// AddQuestion add a question using databases.AddQuestion, returns whether operation is successful
 func AddQuestion(ctx *gin.Context, question *models.NewQuestionRequest) bool {
 	err := databases.Default.AddQuestion(ctx, question)
 	if err != nil {
@@ -57,10 +59,10 @@ func AddQuestion(ctx *gin.Context, question *models.NewQuestionRequest) bool {
 	return true
 }
 
-// returns if operation is successful
-func AnswerQuestion(ctx *gin.Context, questionId *uint, content *string) bool {
+// AnswerQuestion answers a question, returns if operation is successful
+func AnswerQuestion(ctx *gin.Context, questionID *uint, content *string) bool {
 	tx := databases.GetTransaction()
-	question, err := tx.GetQuestion(ctx, questionId)
+	question, err := tx.GetQuestion(ctx, questionID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			_ = ctx.Error(common.NewNotFoundError("question not found")).SetType(gin.ErrorTypePublic)
@@ -86,7 +88,7 @@ func AnswerQuestion(ctx *gin.Context, questionId *uint, content *string) bool {
 	tx.Commit()
 	// notify the email
 	if question.Email != nil && *question.Email != "" {
-		link := fmt.Sprintf("https://young-zy.com/question/%d", *questionId)
+		link := fmt.Sprintf("https://young-zy.com/question/%d", *questionID)
 		message := fmt.Sprintf("您的提问已被回复: %s", link)
 		title := "您在提问箱的提问有新回答"
 		go common.SendMail(ctx.Copy(), *question.Email, title, message)
@@ -94,9 +96,10 @@ func AnswerQuestion(ctx *gin.Context, questionId *uint, content *string) bool {
 	return true
 }
 
-func UpdateAnswer(ctx *gin.Context, questionId *uint, content *string) bool {
+// UpdateAnswer updates the answer of a question
+func UpdateAnswer(ctx *gin.Context, questionID *uint, content *string) bool {
 	tx := databases.GetTransaction()
-	question, err := tx.GetQuestion(ctx, questionId)
+	question, err := tx.GetQuestion(ctx, questionID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			_ = ctx.Error(common.NewNotFoundError("question not found")).SetType(gin.ErrorTypePublic)
@@ -117,8 +120,9 @@ func UpdateAnswer(ctx *gin.Context, questionId *uint, content *string) bool {
 	return true
 }
 
-func DeleteQuestion(ctx *gin.Context, questionId *uint) bool {
-	err := databases.Default.DeleteQuestion(ctx, questionId)
+// DeleteQuestion deletes a question
+func DeleteQuestion(ctx *gin.Context, questionID *uint) bool {
+	err := databases.Default.DeleteQuestion(ctx, questionID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			_ = ctx.Error(common.NewNotFoundError("question not found")).SetType(gin.ErrorTypePublic)

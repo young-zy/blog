@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm/utils"
 )
 
-func NewMyLogger(writer logger.Writer, config logger.Config) logger.Interface {
+func newMyLogger(writer logger.Writer, config logger.Config) logger.Interface {
 	var (
 		infoStr      = "%s\n[gorm-info] "
 		warnStr      = "%s\n[gorm-warn] "
@@ -57,9 +57,9 @@ func (l *myLogger) LogMode(level logger.LogLevel) logger.Interface {
 // Info print info
 func (l myLogger) Info(ctx context.Context, msg string, data ...interface{}) {
 	if l.LogLevel >= logger.Info {
-		traceId := ctx.Value("traceId")
-		if traceId != nil {
-			l.Printf("%s", traceId)
+		traceID := ctx.Value("traceID")
+		if traceID != nil {
+			l.Printf("%s", traceID)
 		}
 		l.Printf(l.infoStr+msg, append([]interface{}{utils.FileWithLineNum()}, data...)...)
 	}
@@ -68,9 +68,9 @@ func (l myLogger) Info(ctx context.Context, msg string, data ...interface{}) {
 // Warn print warn messages
 func (l myLogger) Warn(ctx context.Context, msg string, data ...interface{}) {
 	if l.LogLevel >= logger.Warn {
-		traceId := ctx.Value("traceId")
-		if traceId != nil {
-			l.Printf("%s", traceId)
+		traceID := ctx.Value("traceID")
+		if traceID != nil {
+			l.Printf("%s", traceID)
 		}
 		l.Printf(l.warnStr+msg, append([]interface{}{utils.FileWithLineNum()}, data...)...)
 	}
@@ -79,9 +79,9 @@ func (l myLogger) Warn(ctx context.Context, msg string, data ...interface{}) {
 // Error print error messages
 func (l myLogger) Error(ctx context.Context, msg string, data ...interface{}) {
 	if l.LogLevel >= logger.Error {
-		traceId := ctx.Value("traceId")
-		if traceId != nil {
-			l.Printf("%s", traceId)
+		traceID := ctx.Value("traceID")
+		if traceID != nil {
+			l.Printf("%s", traceID)
 		}
 		l.Printf(l.errStr+msg, append([]interface{}{utils.FileWithLineNum()}, data...)...)
 	}
@@ -91,11 +91,11 @@ func (l myLogger) Error(ctx context.Context, msg string, data ...interface{}) {
 func (l myLogger) Trace(ctx context.Context, begin time.Time, fc func() (string, int64), err error) {
 	if l.LogLevel > logger.Silent {
 		elapsed := time.Since(begin)
-		traceId := ctx.Value("traceId")
+		traceID := ctx.Value("traceID")
 		switch {
 		case err != nil && l.LogLevel >= logger.Error:
-			if traceId != nil {
-				l.Printf("%s ", traceId)
+			if traceID != nil {
+				l.Printf("%s ", traceID)
 			}
 			sql, rows := fc()
 			if rows == -1 {
@@ -104,8 +104,8 @@ func (l myLogger) Trace(ctx context.Context, begin time.Time, fc func() (string,
 				l.Printf(l.traceErrStr, utils.FileWithLineNum(), err, float64(elapsed.Nanoseconds())/1e6, rows, sql)
 			}
 		case elapsed > l.SlowThreshold && l.SlowThreshold != 0 && l.LogLevel >= logger.Warn:
-			if traceId != nil {
-				l.Printf("%s ", traceId)
+			if traceID != nil {
+				l.Printf("%s ", traceID)
 			}
 			sql, rows := fc()
 			slowLog := fmt.Sprintf("SLOW SQL >= %v", l.SlowThreshold)
@@ -115,8 +115,8 @@ func (l myLogger) Trace(ctx context.Context, begin time.Time, fc func() (string,
 				l.Printf(l.traceWarnStr, utils.FileWithLineNum(), slowLog, float64(elapsed.Nanoseconds())/1e6, rows, sql)
 			}
 		case l.LogLevel == logger.Info:
-			if traceId != nil {
-				l.Printf("%s ", traceId)
+			if traceID != nil {
+				l.Printf("%s ", traceID)
 			}
 			sql, rows := fc()
 			if rows == -1 {

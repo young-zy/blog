@@ -15,6 +15,7 @@ import (
 	"blog/services"
 )
 
+// AuthMiddleware is the jwt middleware
 var AuthMiddleware *jwt.GinJWTMiddleware
 
 func init() {
@@ -61,7 +62,7 @@ func init() {
 func payload(data interface{}) jwt.MapClaims {
 	if v, ok := data.(*models.User); ok {
 		return jwt.MapClaims{
-			"Id":       v.Id,
+			"ID":       v.ID,
 			"Username": v.Username,
 			"Email":    v.Email,
 			"Role":     v.Role,
@@ -73,7 +74,7 @@ func payload(data interface{}) jwt.MapClaims {
 func identityHandler(c *gin.Context) interface{} {
 	claims := jwt.ExtractClaims(c)
 	return &models.User{
-		Id:       common.IntToUintPointer(int(claims["Id"].(float64))),
+		ID:       common.IntToUintPointer(int(claims["ID"].(float64))),
 		Username: claims["Username"].(string),
 		Email:    claims["Email"].(string),
 		Role:     models.Role(claims["Role"].(float64)),
@@ -92,7 +93,7 @@ func authenticator(c *gin.Context) (interface{}, error) {
 			return nil, jwt.ErrFailedAuthentication
 		}
 		return &models.User{
-			Id:       user.Id,
+			ID:       user.ID,
 			Username: user.Username,
 			Email:    user.Email,
 			Role:     user.Role,
