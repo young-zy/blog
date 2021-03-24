@@ -148,7 +148,7 @@ func GetReplies(c *gin.Context, postID *uint, page int, size int) (replyResponse
 	return
 }
 
-// ReplPost replies a post
+// ReplyPost replies a post
 func ReplyPost(c *gin.Context, reply *models.ReplyRequest, postID *uint) (ok bool) {
 	tx := databases.GetTransaction()
 	_, err := tx.GetPost(c, postID)

@@ -61,10 +61,7 @@ func addPost(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	ok := services.AddPost(c, postRequest)
-	if !ok {
-		return
-	}
+	services.AddPost(c, postRequest)
 }
 
 func deletePost(c *gin.Context) {
