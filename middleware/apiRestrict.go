@@ -9,8 +9,8 @@ import (
 	restrict "github.com/young-zy/gin-api-restriction"
 )
 
-// ApiRestrict is a restriction middleware
-var ApiRestrict *restrict.RestrictionMiddleWare
+// APIRestrict is a restriction middleware
+var APIRestrict *restrict.RestrictionMiddleWare
 
 func init() {
 
@@ -28,7 +28,7 @@ func init() {
 
 	redisClient := redis.NewClient(options)
 
-	ApiRestrict = restrict.NewDefaultRestrictionMiddleWare(&restrict.RestrictionConfig{
+	APIRestrict = restrict.NewDefaultRestrictionMiddleWare(&restrict.RestrictionConfig{
 		Log:              false,
 		RestrictionCount: restrictConf.RestrictionCount,
 		RestrictionTime:  time.Duration(restrictConf.RestrictionTime) * time.Second,

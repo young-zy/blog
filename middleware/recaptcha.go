@@ -17,7 +17,8 @@ import (
 var requestClient *http.Client
 
 var (
-	errorMap  map[string]string
+	errorMap map[string]string
+	// Recaptcha the recaptcha middleware for this project
 	Recaptcha *RecaptchaMiddleware
 )
 
@@ -58,9 +59,9 @@ func newRecaptchaMiddleware(secret string, baseURL string) *RecaptchaMiddleware 
 	}
 }
 
-func (r *RecaptchaMiddleware) sendApiRequest(c *gin.Context, token string) (*captchaResponseBody, error) {
-	requestUrl := fmt.Sprintf("%s/recaptcha/api/siteverify?secret=%s&response=%s&remoteip=%s", r.baseURL, r.secretKey, token, c.ClientIP())
-	resp, err := requestClient.Post(requestUrl, "application/json", nil)
+func (r *RecaptchaMiddleware) sendAPIRequest(c *gin.Context, token string) (*captchaResponseBody, error) {
+	requestURL := fmt.Sprintf("%s/recaptcha/api/siteverify?secret=%s&response=%s&remoteip=%s", r.baseURL, r.secretKey, token, c.ClientIP())
+	resp, err := requestClient.Post(requestURL, "application/json", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +80,7 @@ func (r *RecaptchaMiddleware) sendApiRequest(c *gin.Context, token string) (*cap
 // Middleware returns a gin handler function that handles the recaptcha token
 func (r *RecaptchaMiddleware) Middleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		resp, err := r.sendApiRequest(c, c.Request.Header.Get("captchaToken"))
+		resp, err := r.sendAPIRequest(c, c.Request.Header.Get("captchaToken"))
 		if err != nil {
 			common.NewInternalError(c, err)
 		}

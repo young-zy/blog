@@ -23,13 +23,13 @@ func main() {
 	}()
 	gin.ForceConsoleColor()
 
-	serverUrl := fmt.Sprintf("%s:%d", conf.Config.Server.Listen, conf.Config.Server.Port)
+	serverURL := fmt.Sprintf("%s:%d", conf.Config.Server.Listen, conf.Config.Server.Port)
 	srv := &http.Server{
-		Addr:    serverUrl,
+		Addr:    serverURL,
 		Handler: controllers.Router,
 	}
 	go func() {
-		log.Printf("trying to listen on %s\n", serverUrl)
+		log.Printf("trying to listen on %s\n", serverURL)
 		// 服务连接
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen: %s\n", err)

@@ -98,9 +98,8 @@ func authenticator(c *gin.Context) (interface{}, error) {
 			Email:    user.Email,
 			Role:     user.Role,
 		}, nil
-	} else {
-		return nil, errors.New("username does not exist")
 	}
+	return nil, errors.New("username does not exist")
 }
 
 func authorizer(data interface{}, c *gin.Context) bool {
