@@ -14,8 +14,8 @@ import (
 	"blog/models"
 )
 
+// Register is used for registering a new user
 func Register(c *gin.Context, username, password, email string) bool {
-	// TODO validate field
 	// generate hashed password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {

@@ -8,6 +8,7 @@ import (
 	"os"
 )
 
+// Config the configuration for this project
 var Config *Conf
 
 // Server is configuration struct for server

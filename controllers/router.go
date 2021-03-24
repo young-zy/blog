@@ -19,7 +19,7 @@ func init() {
 	Router.Use(cors())
 	Router.Use(errorHandling())
 	Router.Use(logging())
-	Router.Use(middleware.ApiRestrict.RestrictionMiddleware())
+	Router.Use(middleware.APIRestrict.RestrictionMiddleware())
 	Router.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",
@@ -78,7 +78,7 @@ func errorHandling() gin.HandlerFunc {
 					"message": fmt.Sprintf("failed to bind, %s", err.Err.Error()),
 				})
 			case gin.ErrorTypePublic:
-				httpError := err.Err.(common.HttpError)
+				httpError := err.Err.(common.HTTPError)
 				context.AbortWithStatusJSON(httpError.Status(), gin.H{
 					"code":    httpError.Status(),
 					"message": httpError.Message(),

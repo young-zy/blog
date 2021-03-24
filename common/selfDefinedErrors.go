@@ -7,14 +7,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// HttpError is an interface used to present an http error
-type HttpError interface {
+// HTTPError is an interface used to present an http error
+type HTTPError interface {
 	error
 	Status() int
 	Message() string
 }
 
-// SelfDefinedError is an implementation of HttpError
+// SelfDefinedError is an implementation of HTTPError
 type SelfDefinedError struct {
 	status  int
 	message string
