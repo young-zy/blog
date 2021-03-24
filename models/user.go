@@ -1,6 +1,8 @@
 package models
 
 import (
+	"database/sql/driver"
+	"errors"
 	"unicode"
 
 	"github.com/gin-gonic/gin/binding"
@@ -14,6 +16,27 @@ const (
 	RoleAdmin
 )
 
+var roleMap = map[string]Role{
+	"user":  RoleUser,
+	"admin": RoleAdmin,
+}
+
+func (r *Role) Scan(value interface{}) error {
+	str, ok := value.([]uint8)
+	if !ok {
+		return errors.New("failed to parse value to string")
+	}
+	*r, ok = roleMap[string(str)]
+	if !ok {
+		return errors.New("unknown role received")
+	}
+	return nil
+}
+
+func (r Role) Value() (driver.Value, error) {
+	return r.String(), nil
+}
+
 func (r *Role) String() string {
 	return [...]string{"user", "admin"}[*r]
 }
@@ -23,7 +46,7 @@ type User struct {
 	Username       string `gorm:"type:VARCHAR(45);NOT NULL" json:"username"`
 	Email          string `gorm:"type:VARCHAR(100);NOT NULL" json:"email"`
 	HashedPassword string `gorm:"type:VARCHAR(300);NOT NULL" json:"-"`
-	Role           Role   `gorm:"type:INT;NOT NULL" json:"role"`
+	Role           Role   `gorm:"type:VARCHAR(45);NOT NULL" json:"role"`
 	Avatar         string `gorm:"type:MEDIUMTEXT" json:"avatar"`
 }
 

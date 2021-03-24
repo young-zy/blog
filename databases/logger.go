@@ -3,9 +3,10 @@ package databases
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/utils"
-	"time"
 )
 
 func NewMyLogger(writer logger.Writer, config logger.Config) logger.Interface {
