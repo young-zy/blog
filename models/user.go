@@ -13,8 +13,9 @@ import (
 type Role int
 
 const (
-	// enumeration of roles
+	// RoleUser user
 	RoleUser Role = iota
+	// RoleAdmin admin
 	RoleAdmin
 )
 

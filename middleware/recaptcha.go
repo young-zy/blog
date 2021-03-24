@@ -40,7 +40,7 @@ func init() {
 // RecaptchaMiddleware is a recaptcha authentication middleware
 type RecaptchaMiddleware struct {
 	secretKey string
-	baseUrl   string
+	baseURL   string
 }
 
 type captchaResponseBody struct {
@@ -51,15 +51,15 @@ type captchaResponseBody struct {
 }
 
 // newRecaptchaMiddleware creates a new recaptcha middleware
-func newRecaptchaMiddleware(secret string, baseUrl string) *RecaptchaMiddleware {
+func newRecaptchaMiddleware(secret string, baseURL string) *RecaptchaMiddleware {
 	return &RecaptchaMiddleware{
 		secretKey: secret,
-		baseUrl:   baseUrl,
+		baseURL:   baseURL,
 	}
 }
 
 func (r *RecaptchaMiddleware) sendApiRequest(c *gin.Context, token string) (*captchaResponseBody, error) {
-	requestUrl := fmt.Sprintf("%s/recaptcha/api/siteverify?secret=%s&response=%s&remoteip=%s", r.baseUrl, r.secretKey, token, c.ClientIP())
+	requestUrl := fmt.Sprintf("%s/recaptcha/api/siteverify?secret=%s&response=%s&remoteip=%s", r.baseURL, r.secretKey, token, c.ClientIP())
 	resp, err := requestClient.Post(requestUrl, "application/json", nil)
 	if err != nil {
 		return nil, err
