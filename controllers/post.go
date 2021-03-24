@@ -17,16 +17,16 @@ func initPostGroup() {
 	{
 		postGroup.GET("", getPostList)
 		postGroup.POST("", middleware.AuthMiddleware.MiddlewareFunc(), addPost)
-		postGroup.GET("/:postId", getPost)
-		postGroup.PUT("/:postId", middleware.AuthMiddleware.MiddlewareFunc())
-		postGroup.DELETE("/:postId", middleware.AuthMiddleware.MiddlewareFunc(), deletePost)
+		postGroup.GET("/:postID", getPost)
+		postGroup.PUT("/:postID", middleware.AuthMiddleware.MiddlewareFunc())
+		postGroup.DELETE("/:postID", middleware.AuthMiddleware.MiddlewareFunc(), deletePost)
 	}
-	replyGroup := postGroup.Group("/:postId/reply")
+	replyGroup := postGroup.Group("/:postID/reply")
 	{
 		replyGroup.GET("", getReply)
 		replyGroup.POST("", replyPost)
-		replyGroup.PUT("/:replyId", middleware.AuthMiddleware.MiddlewareFunc(), updateReply)
-		replyGroup.DELETE("/:replyId", middleware.AuthMiddleware.MiddlewareFunc(), deleteReply)
+		replyGroup.PUT("/:replyID", middleware.AuthMiddleware.MiddlewareFunc(), updateReply)
+		replyGroup.DELETE("/:replyID", middleware.AuthMiddleware.MiddlewareFunc(), deleteReply)
 	}
 }
 
@@ -43,12 +43,12 @@ func getPostList(c *gin.Context) {
 }
 
 func getPost(c *gin.Context) {
-	postId, err := strconv.Atoi(c.Param("postId"))
+	postID, err := strconv.Atoi(c.Param("postID"))
 	if err != nil {
-		_ = c.Error(common.NewBadRequestError("wrong format of postId provided")).SetType(gin.ErrorTypePublic)
+		_ = c.Error(common.NewBadRequestError("wrong format of postID provided")).SetType(gin.ErrorTypePublic)
 		return
 	}
-	postResponse, ok := services.GetPost(c, common.IntToUintPointer(postId))
+	postResponse, ok := services.GetPost(c, common.IntToUintPointer(postID))
 	if !ok {
 		return
 	}
@@ -68,56 +68,56 @@ func addPost(c *gin.Context) {
 }
 
 func deletePost(c *gin.Context) {
-	postId, err := strconv.Atoi(c.Param("postId"))
+	postID, err := strconv.Atoi(c.Param("postID"))
 	if err != nil {
-		_ = c.Error(common.NewBadRequestError("wrong format of postId provided")).SetType(gin.ErrorTypePublic)
+		_ = c.Error(common.NewBadRequestError("wrong format of postID provided")).SetType(gin.ErrorTypePublic)
 		return
 	}
-	services.DeletePost(c, common.IntToUintPointer(postId))
+	services.DeletePost(c, common.IntToUintPointer(postID))
 }
 
 func getReply(c *gin.Context) {
-	postId, err := strconv.Atoi(c.Param("postId"))
+	postID, err := strconv.Atoi(c.Param("postID"))
 	if err != nil {
-		_ = c.Error(common.NewBadRequestError("failed to parse postId")).SetType(gin.ErrorTypePublic)
+		_ = c.Error(common.NewBadRequestError("failed to parse postID")).SetType(gin.ErrorTypePublic)
 	}
 	pager := common.NewPager()
 	if c.BindQuery(pager) != nil {
 		return
 	}
-	services.GetReplies(c, common.IntToUintPointer(postId), pager.Page, pager.Size)
+	services.GetReplies(c, common.IntToUintPointer(postID), pager.Page, pager.Size)
 }
 
 func replyPost(c *gin.Context) {
-	postId, err := strconv.Atoi(c.Param("postId"))
+	postID, err := strconv.Atoi(c.Param("postID"))
 	if err != nil {
-		_ = c.Error(common.NewBadRequestError("failed to parse postId")).SetType(gin.ErrorTypePublic)
+		_ = c.Error(common.NewBadRequestError("failed to parse postID")).SetType(gin.ErrorTypePublic)
 	}
 	replyRequest := &models.ReplyRequest{}
 	err = c.BindJSON(replyRequest)
 	if err != nil {
 		return
 	}
-	services.ReplyPost(c, replyRequest, common.IntToUintPointer(postId))
+	services.ReplyPost(c, replyRequest, common.IntToUintPointer(postID))
 }
 
 func updateReply(c *gin.Context) {
-	replyId, err := strconv.Atoi(c.Param("replyId"))
+	replyID, err := strconv.Atoi(c.Param("replyID"))
 	if err != nil {
-		_ = c.Error(common.NewBadRequestError("failed to parse replyId"))
+		_ = c.Error(common.NewBadRequestError("failed to parse replyID"))
 	}
 	replyRequest := &models.ReplyRequest{}
 	err = c.BindJSON(replyRequest)
 	if err != nil {
 		return
 	}
-	services.UpdateReply(c, replyRequest, common.IntToUintPointer(replyId))
+	services.UpdateReply(c, replyRequest, common.IntToUintPointer(replyID))
 }
 
 func deleteReply(c *gin.Context) {
-	replyId, err := strconv.Atoi(c.Param("replyId"))
+	replyID, err := strconv.Atoi(c.Param("replyID"))
 	if err != nil {
-		_ = c.Error(common.NewBadRequestError("failed to parse replyId"))
+		_ = c.Error(common.NewBadRequestError("failed to parse replyID"))
 	}
-	services.DeleteReply(c, common.IntToUintPointer(replyId))
+	services.DeleteReply(c, common.IntToUintPointer(replyID))
 }

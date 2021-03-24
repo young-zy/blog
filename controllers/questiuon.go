@@ -17,20 +17,20 @@ func initQuestionGroup() {
 	questionGroup := Router.Group("/question")
 	{
 		questionGroup.GET("", getQuestions)
-		questionGroup.GET("/:questionId", getQuestion)
+		questionGroup.GET("/:questionID", getQuestion)
 		questionGroup.POST("", middleware.Recaptcha.Middleware(), newQuestion)
-		questionGroup.POST("/:questionId/answer", middleware.AuthMiddleware.MiddlewareFunc(), newAnswer)
-		questionGroup.DELETE("/:questionId", middleware.AuthMiddleware.MiddlewareFunc(), deleteQuestion)
-		questionGroup.PATCH("/:questionId", middleware.AuthMiddleware.MiddlewareFunc(), updateAnswer)
+		questionGroup.POST("/:questionID/answer", middleware.AuthMiddleware.MiddlewareFunc(), newAnswer)
+		questionGroup.DELETE("/:questionID", middleware.AuthMiddleware.MiddlewareFunc(), deleteQuestion)
+		questionGroup.PATCH("/:questionID", middleware.AuthMiddleware.MiddlewareFunc(), updateAnswer)
 	}
 }
 
 func getQuestion(c *gin.Context) {
-	questionId, err := strconv.Atoi(c.Param("questionId"))
+	questionID, err := strconv.Atoi(c.Param("questionID"))
 	if err != nil {
-		_ = c.Error(errors.New("error parsing questionId")).SetType(gin.ErrorTypeBind)
+		_ = c.Error(errors.New("error parsing questionID")).SetType(gin.ErrorTypeBind)
 	}
-	if question, ok := services.GetQuestion(c, common.IntToUintPointer(questionId)); ok {
+	if question, ok := services.GetQuestion(c, common.IntToUintPointer(questionID)); ok {
 		c.JSON(http.StatusOK, question)
 	}
 }
@@ -64,39 +64,39 @@ func newAnswer(c *gin.Context) {
 	if c.Bind(answer) != nil {
 		return
 	}
-	questionId, err := strconv.Atoi(c.Param("questionId"))
+	questionID, err := strconv.Atoi(c.Param("questionID"))
 	if err != nil {
-		_ = c.Error(errors.New("error parsing questionId")).SetType(gin.ErrorTypeBind)
+		_ = c.Error(errors.New("error parsing questionID")).SetType(gin.ErrorTypeBind)
 		return
 	}
-	if services.AnswerQuestion(c, common.IntToUintPointer(questionId), &answer.AnswerContent) {
+	if services.AnswerQuestion(c, common.IntToUintPointer(questionID), &answer.AnswerContent) {
 		c.JSON(http.StatusNoContent, nil)
 	}
 }
 
 func deleteQuestion(c *gin.Context) {
-	questionId, err := strconv.Atoi(c.Param("questionId"))
+	questionID, err := strconv.Atoi(c.Param("questionID"))
 	if err != nil {
-		_ = c.Error(errors.New("error parsing questionId")).SetType(gin.ErrorTypeBind)
+		_ = c.Error(errors.New("error parsing questionID")).SetType(gin.ErrorTypeBind)
 		return
 	}
-	if services.DeleteQuestion(c, common.IntToUintPointer(questionId)) {
+	if services.DeleteQuestion(c, common.IntToUintPointer(questionID)) {
 		c.JSON(http.StatusNoContent, nil)
 	}
 }
 
 func updateAnswer(c *gin.Context) {
-	questionId, err := strconv.Atoi(c.Param("questionId"))
+	questionID, err := strconv.Atoi(c.Param("questionID"))
 	if err != nil {
-		_ = c.Error(errors.New("error parsing questionId")).SetType(gin.ErrorTypeBind)
+		_ = c.Error(errors.New("error parsing questionID")).SetType(gin.ErrorTypeBind)
 		return
 	}
 	question := &models.Question{}
 	if c.Bind(question) != nil {
 		return
 	}
-	services.UpdateAnswer(c, common.IntToUintPointer(questionId), question.AnswerContent)
-	if services.DeleteQuestion(c, common.IntToUintPointer(questionId)) {
+	services.UpdateAnswer(c, common.IntToUintPointer(questionID), question.AnswerContent)
+	if services.DeleteQuestion(c, common.IntToUintPointer(questionID)) {
 		c.JSON(http.StatusNoContent, nil)
 	}
 }

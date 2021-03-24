@@ -12,6 +12,7 @@ import (
 	"blog/middleware"
 )
 
+// Router the main router of the project
 var Router = gin.Default()
 
 func init() {
@@ -54,7 +55,7 @@ func logging() gin.HandlerFunc {
 		context.Next()
 		errs := context.Errors.ByType(gin.ErrorTypePrivate)
 		for _, err := range errs {
-			trace, _ := context.Get("traceId")
+			trace, _ := context.Get("traceID")
 			log.Printf("[trace-%s] Internal Error: %v", trace, err)
 		}
 	}
@@ -62,7 +63,7 @@ func logging() gin.HandlerFunc {
 
 func errorHandling() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		context.Set("traceId", uuid.New().String())
+		context.Set("traceID", uuid.New().String())
 		context.Next()
 		// error type, error meta, error string
 		//_ = context.Error(errors.New("")).SetType(gin.ErrorTypePublic)

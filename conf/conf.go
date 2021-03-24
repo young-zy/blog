@@ -10,6 +10,7 @@ import (
 
 var Config *Conf
 
+// Server is configuration struct for server
 type Server struct {
 	Listen             string `json:"listen"`
 	Port               int    `json:"port"`
@@ -18,6 +19,7 @@ type Server struct {
 	CasModelPath       string `json:"casModelPath"`
 }
 
+// DBConfig is configuration struct for database
 type DBConfig struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
@@ -27,6 +29,7 @@ type DBConfig struct {
 	Charset  string `json:"charset"`
 }
 
+// MailConfig is configuration struct for mail server
 type MailConfig struct {
 	Host     string `json:"host"`
 	Port     int    `json:"port"`
@@ -35,11 +38,13 @@ type MailConfig struct {
 	From     string `json:"from"`
 }
 
+// Restrict is configuration struct for rate limit restriction
 type Restrict struct {
 	RestrictionCount int64 `json:"restrictionCount"`
 	RestrictionTime  int64 `json:"restrictionTime"`
 }
 
+// Redis is configuration struct for redis server
 type Redis struct {
 	Addr     string `json:"addr"`
 	Port     int    `json:"port"`
@@ -48,6 +53,7 @@ type Redis struct {
 	DB       int    `json:"db"`
 }
 
+// Conf is the main configuration struct
 type Conf struct {
 	Database DBConfig   `json:"database"`
 	Server   Server     `json:"server"`

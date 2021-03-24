@@ -8,7 +8,7 @@ import (
 	"blog/databases"
 )
 
-var Enforcer *casbin.Enforcer
+var enforcer *casbin.Enforcer
 
 func init() {
 	config := conf.Config
@@ -16,9 +16,9 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	Enforcer, err = casbin.NewEnforcer(config.Server.CasModelPath, a)
+	enforcer, err = casbin.NewEnforcer(config.Server.CasModelPath, a)
 	if err != nil {
 		panic(err)
 	}
-	Enforcer.EnableLog(true)
+	enforcer.EnableLog(true)
 }

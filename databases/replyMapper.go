@@ -6,12 +6,14 @@ import (
 	"blog/models"
 )
 
+// AddReply adds a reply to a post
 func (tx *Transaction) AddReply(c context.Context, reply *models.Reply) error {
 	return tx.tx.WithContext(c).Create(reply).Error
 }
 
-func (tx *Transaction) GetReplies(c context.Context, postId *uint, page int, size int) (replyList []*models.Reply, totalCount int64, err error) {
-	replyDB := tx.tx.WithContext(c).Model(&models.Reply{}).Where(&models.Reply{PostsId: *postId})
+// GetReplies gets a list of replies of a post
+func (tx *Transaction) GetReplies(c context.Context, postID *uint, page int, size int) (replyList []*models.Reply, totalCount int64, err error) {
+	replyDB := tx.tx.WithContext(c).Model(&models.Reply{}).Where(&models.Reply{PostsID: *postID})
 	err = replyDB.
 		Count(&totalCount).
 		Offset((page - 1) * size).
@@ -21,23 +23,26 @@ func (tx *Transaction) GetReplies(c context.Context, postId *uint, page int, siz
 	return
 }
 
-func (tx *Transaction) DeleteReply(c context.Context, replyId *uint) (rowsAffected int64, err error) {
-	result := tx.tx.WithContext(c).Delete(&models.Reply{Id: replyId})
+// DeleteReply deletes reply with the ID provided
+func (tx *Transaction) DeleteReply(c context.Context, replyID *uint) (rowsAffected int64, err error) {
+	result := tx.tx.WithContext(c).Delete(&models.Reply{ID: replyID})
 	rowsAffected = result.RowsAffected
 	err = result.Error
 	return
 }
 
+// UpdateReply updates a reply
 func (tx *Transaction) UpdateReply(c context.Context, reply *models.Reply) error {
 	return tx.tx.WithContext(c).
 		Model(&models.Reply{}).
-		Where("id = ?", *reply.Id).
+		Where("id = ?", *reply.ID).
 		Updates(reply).Error
 }
 
-func (tx *Transaction) GetReply(c context.Context, replyId *uint) (reply *models.Reply, err error) {
+// GetReply gets a reply with the ID provided
+func (tx *Transaction) GetReply(c context.Context, replyID *uint) (reply *models.Reply, err error) {
 	err = tx.tx.WithContext(c).
-		Where("id = ?", *replyId).
+		Where("id = ?", *replyID).
 		Find(reply).
 		Error
 	return

@@ -44,7 +44,7 @@ func Register(c *gin.Context, username, password, email string) bool {
 	return true
 }
 
-// acquire user by username
+// GetUser acquire user by username
 func GetUser(c *gin.Context, username string) (user *models.User, ok bool) {
 	ok = true
 	user, err := databases.Default.GetUser(c, username)
@@ -59,6 +59,7 @@ func GetUser(c *gin.Context, username string) (user *models.User, ok bool) {
 	return
 }
 
+// SetAvatar sets the avatar of a user
 func SetAvatar(c *gin.Context, username, avatar string) (ok bool) {
 	ok = false
 	tx := databases.GetTransaction()
@@ -84,13 +85,14 @@ func SetAvatar(c *gin.Context, username, avatar string) (ok bool) {
 	return
 }
 
+// UpdateUser updates the user info
 func UpdateUser(c *gin.Context, user *models.User) {
 	operator, exists := c.Get("User")
 	if !exists {
 		common.NewInternalError(c, errors.New("user object not found in context"))
 		return
 	}
-	perm, err := Enforcer.Enforce(operator.(models.User), user, "updateUser")
+	perm, err := enforcer.Enforce(operator.(models.User), user, "updateUser")
 	if err != nil || !perm {
 		_ = c.Error(common.NewForbiddenError("permission denied")).SetType(gin.ErrorTypePublic)
 		return
@@ -105,8 +107,9 @@ func UpdateUser(c *gin.Context, user *models.User) {
 	}
 }
 
-func DeleteUser(c *gin.Context, userId *uint) {
-	err := databases.Default.DeleteUser(c, userId)
+// DeleteUser deletes the user
+func DeleteUser(c *gin.Context, userID *uint) {
+	err := databases.Default.DeleteUser(c, userID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			_ = c.Error(common.NewNotFoundError("user to be deleted not found")).SetType(gin.ErrorTypePublic)

@@ -28,6 +28,7 @@ func encodeRFC2047(String string) string {
 	return strings.Trim(addr.String(), " <@>")
 }
 
+// SendMail sends a mail
 func SendMail(ctx *gin.Context, receiver string, title string, msg string) {
 
 	if !state {
@@ -85,7 +86,7 @@ func SendMail(ctx *gin.Context, receiver string, title string, msg string) {
 	}
 	err = c.Quit()
 	if err != nil {
-		log.Printf("[%v] failed to send mail to %s", ctx.Value("traceId").(string), receiver)
+		log.Printf("[%v] failed to send mail to %s", ctx.Value("traceID").(string), receiver)
 	}
 }
 

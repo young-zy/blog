@@ -9,6 +9,7 @@ import (
 	restrict "github.com/young-zy/gin-api-restriction"
 )
 
+// ApiRestrict is a restriction middleware
 var ApiRestrict *restrict.RestrictionMiddleWare
 
 func init() {
