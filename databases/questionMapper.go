@@ -54,7 +54,10 @@ func (tx *Transaction) GetQuestions(ctx context.Context, page int, size int, fil
 
 func (tx *Transaction) GetQuestion(ctx context.Context, questionId *uint) (question *models.Question, err error) {
 	question = &models.Question{}
-	err = tx.tx.WithContext(ctx).Where("id = ?", questionId).First(question).Error
+	err = tx.tx.WithContext(ctx).
+		Where("id = ?", questionId).
+		First(question).
+		Error
 	return
 }
 
@@ -89,5 +92,7 @@ func (tx *Transaction) UpdateQuestion(ctx context.Context, question *models.Ques
 }
 
 func (tx *Transaction) DeleteQuestion(ctx context.Context, questionId *uint) error {
-	return tx.tx.WithContext(ctx).Delete(&models.Question{}, questionId).Error
+	return tx.tx.WithContext(ctx).
+		Delete(&models.Question{}, questionId).
+		Error
 }

@@ -8,12 +8,15 @@ import (
 
 // add a post to the database
 func (tx *Transaction) AddPost(c context.Context, post *models.Post) error {
-	return tx.tx.WithContext(c).Create(post).Error
+	return tx.tx.WithContext(c).
+		Create(post).
+		Error
 }
 
 // returns a list of posts, total count, and the error
 func (tx *Transaction) GetPosts(c context.Context, page int, size int) (postList []*models.Post, totalCount int64, err error) {
-	postDb := tx.tx.WithContext(c).Model(&models.Post{})
+	postDb := tx.tx.WithContext(c).
+		Model(&models.Post{})
 	err = postDb.
 		Count(&totalCount).
 		Offset((page - 1) * size).
@@ -33,7 +36,9 @@ func (tx *Transaction) GetPost(c context.Context, postId *uint) (post *models.Po
 }
 
 func (tx *Transaction) UpdatePost(c context.Context, post *models.Post) (rowsAffected int64, err error) {
-	result := tx.tx.WithContext(c).Where("id = ?", post.Id).Updates(post)
+	result := tx.tx.WithContext(c).
+		Where("id = ?", post.Id).
+		Updates(post)
 	rowsAffected = result.RowsAffected
 	err = result.Error
 	return
