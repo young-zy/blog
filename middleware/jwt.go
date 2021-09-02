@@ -9,10 +9,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 
-	"blog/common"
-	"blog/conf"
-	"blog/models"
-	"blog/services"
+	"github.com/young-zy/blog/common"
+	"github.com/young-zy/blog/conf"
+	"github.com/young-zy/blog/models"
+	"github.com/young-zy/blog/services"
 )
 
 // AuthMiddleware is the jwt middleware

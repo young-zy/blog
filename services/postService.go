@@ -7,9 +7,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
-	"blog/common"
-	"blog/databases"
-	"blog/models"
+	"github.com/young-zy/blog/common"
+	"github.com/young-zy/blog/databases"
+	"github.com/young-zy/blog/models"
 )
 
 // GetAllPosts returns the post list

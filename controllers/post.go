@@ -6,10 +6,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"blog/common"
-	"blog/middleware"
-	"blog/models"
-	"blog/services"
+	"github.com/young-zy/blog/common"
+	"github.com/young-zy/blog/middleware"
+	"github.com/young-zy/blog/models"
+	"github.com/young-zy/blog/services"
 )
 
 func initPostGroup() {

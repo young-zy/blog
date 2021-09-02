@@ -1,11 +1,11 @@
 package middleware
 
 import (
-	"blog/conf"
 	"fmt"
 	"time"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/young-zy/blog/conf"
 	restrict "github.com/young-zy/gin-api-restriction"
 )
 

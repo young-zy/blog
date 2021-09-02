@@ -5,8 +5,8 @@ import (
 
 	"gorm.io/gorm"
 
-	"blog/common"
-	"blog/models"
+	"github.com/young-zy/blog/common"
+	"github.com/young-zy/blog/models"
 )
 
 // GetQuestions Get a list of questions, filter could be 'solved' or 'unsolved', any other values(including unprovided) will be ignored.

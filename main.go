@@ -1,7 +1,6 @@
 package main
 
 import (
-	"blog/controllers"
 	"context"
 	"fmt"
 	"log"
@@ -11,9 +10,9 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-
-	"blog/conf"
-	"blog/databases"
+	"github.com/young-zy/blog/conf"
+	"github.com/young-zy/blog/controllers"
+	"github.com/young-zy/blog/databases"
 )
 
 func main() {

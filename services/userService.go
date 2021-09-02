@@ -9,9 +9,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
-	"blog/common"
-	"blog/databases"
-	"blog/models"
+	"github.com/young-zy/blog/common"
+	"github.com/young-zy/blog/databases"
+	"github.com/young-zy/blog/models"
 )
 
 // Register is used for registering a new user

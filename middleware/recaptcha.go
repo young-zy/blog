@@ -10,8 +10,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"blog/common"
-	"blog/conf"
+	"github.com/young-zy/blog/common"
+	"github.com/young-zy/blog/conf"
 )
 
 var requestClient *http.Client

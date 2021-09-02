@@ -3,7 +3,7 @@ package databases
 import (
 	"context"
 
-	"blog/models"
+	"github.com/young-zy/blog/models"
 )
 
 //// search for a user in database by username

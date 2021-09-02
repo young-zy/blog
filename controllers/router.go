@@ -8,8 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	"blog/common"
-	"blog/middleware"
+	"github.com/young-zy/blog/common"
+	"github.com/young-zy/blog/middleware"
 )
 
 // Router the main router of the project

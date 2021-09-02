@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	"blog/conf"
+	"github.com/young-zy/blog/conf"
 )
 
 // DefaultDb the default db instance the project uses

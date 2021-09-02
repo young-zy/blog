@@ -11,7 +11,7 @@ import (
 	"net/smtp"
 	"strings"
 
-	"blog/conf"
+	"github.com/young-zy/blog/conf"
 )
 
 var (

@@ -3,7 +3,7 @@ package databases
 import (
 	"context"
 
-	"blog/models"
+	"github.com/young-zy/blog/models"
 )
 
 // AddPost adds a post to the database
