@@ -30,12 +30,10 @@ func Register(c *gin.Context, username, password, email string) bool {
 	if err := databases.Default.AddUser(c, user); err != nil {
 		// check if error is mysql error
 		mySQLError, ok := err.(*mysql.MySQLError)
-		if ok {
+		if ok && mySQLError.Number == 1062 {
 			// duplicate entry error
-			if mySQLError.Number == 1062 {
-				_ = c.Error(common.NewSelfDefinedError(http.StatusConflict, "username or email already exists")).
-					SetType(gin.ErrorTypePublic)
-			}
+			_ = c.Error(common.NewSelfDefinedError(http.StatusConflict, "username or email already exists")).
+				SetType(gin.ErrorTypePublic)
 		} else {
 			common.NewInternalError(c, err)
 		}

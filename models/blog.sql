@@ -28,6 +28,8 @@ CREATE TABLE IF NOT EXISTS `blog`.`users`
     `hashed_password` VARCHAR(300) NOT NULL,
     `email`           VARCHAR(100) NOT NULL,
     `auth`            VARCHAR(45)  NOT NULL DEFAULT 'user',
+    `role`            VARCHAR(45)  NOT NULL DEFAULT 'user',
+    `avatar`          TEXT,
     PRIMARY KEY (`id`),
     UNIQUE INDEX `username_UNIQUE` (`username` ASC) VISIBLE,
     UNIQUE INDEX `email_UNIQUE` (`email` ASC) VISIBLE
