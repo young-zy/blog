@@ -21,24 +21,24 @@ var Default *Transaction
 
 // Transaction wrapper of a transaction instance
 type Transaction struct {
-	tx *gorm.DB
+	*gorm.DB
 }
 
-// Rollback rolls back the transaction
-func (tx *Transaction) Rollback() {
-	tx.tx.Rollback()
-}
-
-// Commit commits the transaction
-func (tx *Transaction) Commit() {
-	tx.tx.Commit()
-}
+// // Rollback rolls back the transaction
+// func (tx Transaction) Rollback() {
+//
+// }
+//
+// // Commit commits the transaction
+// func (tx *Transaction) Commit() {
+// 	tx.Commit()
+// }
 
 func init() {
 	var err error
 	config := conf.Config.Database
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=true", config.Username, config.Password, config.Address, config.Port, config.DBName, config.Charset)
-	//dsn := "user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
+	// dsn := "user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
 
 	myLogger := newMyLogger(log.New(os.Stdout, "\r\n", log.LstdFlags),
 		logger.Config{
@@ -56,7 +56,7 @@ func init() {
 		log.Fatal(err)
 	}
 
-	Default = &Transaction{tx: DefaultDb}
+	Default = &Transaction{DB: DefaultDb}
 
 	sqlDB, err := DefaultDb.DB()
 	if err != nil {
@@ -69,7 +69,7 @@ func init() {
 
 // GetTransaction creates a transaction object
 func GetTransaction() *Transaction {
-	return &Transaction{tx: DefaultDb.Begin()}
+	return &Transaction{DB: DefaultDb.Begin()}
 }
 
 // Close closes the database connection
