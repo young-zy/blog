@@ -6,11 +6,13 @@ import (
 
 // Post is used for base orm
 type Post struct {
-	ID          *uint     `gorm:"type:INT;NOT NULL"`
-	Title       string    `gorm:"type:VARCHAR(100);NOT NULL"`
-	Content     string    `gorm:"type:MEDIUMTEXT;NOT NULL"`
-	Author      uint      `gorm:"type:INT;NOT NULL"`
-	LastUpdated time.Time `gorm:"type:DATETIME;"`
+	ID          *uint     `gorm:"type:INT;NOT NULL" json:"id"`
+	Title       string    `gorm:"type:VARCHAR(100);NOT NULL" json:"title"`
+	Content     string    `gorm:"type:MEDIUMTEXT;NOT NULL" json:"content"`
+	Image       string    `gorm:"type:TEXT" json:"image"`
+	Author      *User     `gorm:"foreignKey:ID;references:AuthorId"`
+	AuthorId    uint      `gorm:"column:author;type:INT;NOT NULL" json:"author"`
+	LastUpdated time.Time `gorm:"type:DATETIME;" json:"lastUpdated"`
 }
 
 // PostRequest is used in request
@@ -21,8 +23,8 @@ type PostRequest struct {
 
 // PostListResponse is used in list response
 type PostListResponse struct {
-	Posts      []*Post
-	TotalCount int64
+	Posts      []*Post `json:"posts"`
+	TotalCount int64   `json:"totalCount"`
 }
 
 // PostResponse is used for single object response

@@ -66,7 +66,7 @@ func errorHandling() gin.HandlerFunc {
 		context.Set("traceID", uuid.New().String())
 		context.Next()
 		// error type, error meta, error string
-		//_ = context.Error(errors.New("")).SetType(gin.ErrorTypePublic)
+		// _ = context.Error(errors.New("")).SetType(gin.ErrorTypePublic)
 		errs := context.Errors.ByType(gin.ErrorTypePublic)
 		errs = append(errs, context.Errors.ByType(gin.ErrorTypeBind)...)
 		if len(errs) > 0 {

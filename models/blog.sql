@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS `blog`.`posts`
     `id`           INT          NOT NULL AUTO_INCREMENT,
     `title`        VARCHAR(100) NOT NULL,
     `content`      MEDIUMTEXT   NOT NULL,
+    `image`        TEXT,
     `author`       INT          NOT NULL,
     `last_updated` DATETIME     NULL DEFAULT NULL,
     PRIMARY KEY (`id`),

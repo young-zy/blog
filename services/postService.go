@@ -42,7 +42,7 @@ func GetPost(c *gin.Context, postID *uint) (resp *models.PostResponse, ok bool) 
 		}
 		return
 	}
-	author, err := databases.Default.GetUserByID(c, &post.Author)
+	author, err := databases.Default.GetUserByID(c, &post.AuthorId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			_ = c.Error(common.NewNotFoundError("post not found")).SetType(gin.ErrorTypePublic)
@@ -58,17 +58,17 @@ func GetPost(c *gin.Context, postID *uint) (resp *models.PostResponse, ok bool) 
 		Post:   post,
 		Author: author.GetSimpleUser(),
 	}
-	//replies, replyCount, err := databases.Default.GetReplies(c, postID, page, size)
-	//if err != nil {
+	// replies, replyCount, err := databases.Default.GetReplies(c, postID, page, size)
+	// if err != nil {
 	//	if errors.Is(err, gorm.ErrRecordNotFound) {
 	//		resp.Replies = make([]*models.Reply, 0)
 	//	} else {
 	//		common.NewInternalError(c, err)
 	//	}
 	//	return
-	//}
-	//resp.Replies = replies
-	//resp.ReplyCount = replyCount
+	// }
+	// resp.Replies = replies
+	// resp.ReplyCount = replyCount
 	ok = true
 	return
 }
@@ -94,7 +94,7 @@ func AddPost(c *gin.Context, post *models.PostRequest) (ok bool) {
 	err = tx.AddPost(c, &models.Post{
 		Title:       post.Title,
 		Content:     post.Content,
-		Author:      *user.ID,
+		AuthorId:    *user.ID,
 		LastUpdated: time.Time{},
 	})
 	if err != nil {
@@ -192,19 +192,19 @@ func UpdateReply(c *gin.Context, replyRequest *models.ReplyRequest, replyID *uin
 		return
 	}
 	// add enforcement policy and uncomment the code
-	//user, exists := c.Get("User")
-	//if !exists {
+	// user, exists := c.Get("User")
+	// if !exists {
 	//	common.NewInternalError(c, errors.New("user object not found in context"))
-	//}
-	//res, err := common.enforcer.Enforce(user, reply, "update reply")
-	//if err != nil {
+	// }
+	// res, err := common.enforcer.Enforce(user, reply, "update reply")
+	// if err != nil {
 	//	_ = c.Error(errors.New("enforcer encountered an error")).SetType(gin.ErrorTypePrivate)
-	//}
-	//if !res {
+	// }
+	// if !res {
 	//	tx.Rollback()
 	//	_ = c.Error(common.NewForbiddenError("permission denied")).SetType(gin.ErrorTypePublic)
 	//	return
-	//}
+	// }
 	reply.Content = replyRequest.Content
 	reply.LastUpdated = common.Now()
 	err = tx.UpdateReply(c, reply)
